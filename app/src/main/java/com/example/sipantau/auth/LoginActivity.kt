@@ -15,14 +15,18 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
 
+    companion object {
+        const val PREF_NAME = "MyAppPref"
+        const val PREF_TOKEN = "TOKEN"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Cek apakah user sudah login sebelumnya
-        val prefs = getSharedPreferences("MyAppPref", MODE_PRIVATE)
-        val token = prefs.getString("TOKEN", null)
-        if (token != null) {
-            // Kalau token ada → langsung masuk MainActivity
+        // Cek token
+        val prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+        val token = prefs.getString(PREF_TOKEN, null)
+        if (!token.isNullOrEmpty()) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
@@ -31,7 +35,6 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Tombol login ditekan
         binding.btnLogin.setOnClickListener {
             val sobatId = binding.edtIdPengguna.text.toString().trim()
             val password = binding.edtPassword.text.toString().trim()
@@ -48,16 +51,12 @@ class LoginActivity : AppCompatActivity() {
     private fun doLogin(sobatId: String, password: String) {
         ApiClient.instance.login(sobatId, password)
             .enqueue(object : Callback<LoginResponse> {
-                override fun onResponse(
-                    call: Call<LoginResponse>,
-                    response: Response<LoginResponse>
-                ) {
+                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     if (response.isSuccessful) {
                         val body = response.body()
                         if (body != null && body.status == "success") {
-                            // Simpan token ke SharedPreferences
-                            val prefs = getSharedPreferences("MyAppPref", MODE_PRIVATE)
-                            prefs.edit().putString("TOKEN", body.token).apply()
+                            val prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
+                            prefs.edit().putString(PREF_TOKEN, body.token).apply()
 
                             Toast.makeText(
                                 this@LoginActivity,
@@ -65,22 +64,13 @@ class LoginActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
 
-                            // Pindah ke MainActivity
                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                             finish()
                         } else {
-                            Toast.makeText(
-                                this@LoginActivity,
-                                body?.message ?: "Login gagal",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@LoginActivity, body?.message ?: "Login gagal", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Error: ${response.message()}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@LoginActivity, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
                     }
                 }
 

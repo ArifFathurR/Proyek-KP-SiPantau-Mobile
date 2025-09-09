@@ -4,6 +4,7 @@ import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
 import com.example.sipantau.model.PelaporanResponse
 import com.example.sipantau.model.UserData
+import com.example.sipantau.model.PelaporanWrapper
 //import com.example.sipantau.api.ApiResponse
 interface ApiService {
     // Login
@@ -20,11 +21,10 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<UserData>
 
-    // Get pelaporan
     @GET("api/pelaporan")
     fun getPelaporan(
         @Header("Authorization") token: String
-    ): Call<List<PelaporanResponse>>
+    ): Call<PelaporanWrapper>
 
 //    // Tambah pelaporan
 //    @FormUrlEncoded
