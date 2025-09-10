@@ -6,6 +6,7 @@ import com.example.sipantau.model.PelaporanResponse
 import com.example.sipantau.model.UserData
 import com.example.sipantau.model.PelaporanWrapper
 //import com.example.sipantau.api.ApiResponse
+import com.example.sipantau.model.DeleteResponse
 interface ApiService {
     // Login
     @FormUrlEncoded
@@ -25,6 +26,12 @@ interface ApiService {
     fun getPelaporan(
         @Header("Authorization") token: String
     ): Call<PelaporanWrapper>
+
+    @DELETE("api/pelaporan/{id}")
+    fun deletePelaporan(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<DeleteResponse>
 
 //    // Tambah pelaporan
 //    @FormUrlEncoded
