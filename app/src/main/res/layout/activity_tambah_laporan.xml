@@ -58,16 +58,16 @@
             <!-- Dropdown Pilih Kegiatan -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/pilih_kegiatan"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:hint="-- Pilih Kegiatan --">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtKegitan"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinnerKegiatan"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tanggal Kegiatan -->
@@ -88,34 +88,35 @@
             <!-- Input Kecamatan -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/kecamatan"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="-- Pilih Kecamatan --">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtKecamatan"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinnerKecamatan"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
+
 
             <!-- Input Kelurahan -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/kelurahan"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="-- Pilih Kelurahan --">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtKelurahan"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinnerDesa"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Input Kelurahan -->
+            <!-- Input Ringkasan -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ringkasan"
                 android:layout_width="match_parent"
@@ -205,8 +206,8 @@
                         android:text="Foto Live"
                         android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
-                    <ImageView
-                        android:id="@+id/imgPreview"
+                    <androidx.camera.view.PreviewView
+                        android:id="@+id/previewView"
                         android:layout_width="150dp"
                         android:layout_height="200dp"
                         android:layout_gravity="center_horizontal"

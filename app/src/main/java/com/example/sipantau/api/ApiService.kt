@@ -2,10 +2,12 @@ package com.example.sipantau.api
 import retrofit2.Call
 import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
-import com.example.sipantau.model.PelaporanResponse
 import com.example.sipantau.model.UserData
 import com.example.sipantau.model.PelaporanWrapper
-//import com.example.sipantau.api.ApiResponse
+import com.example.sipantau.model.KegiatanResponse
+import com.example.sipantau.model.KecamatanResponse
+import com.example.sipantau.model.DesaResponse
+
 interface ApiService {
     // Login
     @FormUrlEncoded
@@ -26,15 +28,38 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<PelaporanWrapper>
 
-//    // Tambah pelaporan
-//    @FormUrlEncoded
-//    @POST("api/pelaporan/tambah")
-//    fun tambahPelaporan(
-//        @Header("Authorization") token: String,
-//        @Field("judul") judul: String,
-//        @Field("deskripsi") deskripsi: String,
-//        @Field("image") imageBase64: String
-//    ): Call<ApiResponse>
+
+    // Get Kegiatan
+    @GET("api/pelaporan/kegiatan")
+    fun getKegiatan(
+        @Header("Authorization") token: String
+    ): Call<KegiatanResponse>
+
+    // Get Kecamatan
+    @GET("api/lokasi/kecamatan")
+    fun getKecamatan(
+        @Header("Authorization") token: String
+    ): Call<KecamatanResponse>
+
+    // Get Desa (per-kecamatan)
+    @GET("api/lokasi/desa/{idkec}")
+    fun getDesa(
+        @Header("Authorization") token: String,
+        @Path("idkec") idkec: Int
+    ): Call<DesaResponse>
+
+
+    @FormUrlEncoded
+    @POST("api/pelaporan/tambah")
+    fun tambahPelaporan(
+        @Header("Authorization") token: String,
+        @Field("id_kegiatan") idKegiatan: Int,
+        @Field("id_kecamatan") idKecamatan: Int,
+        @Field("id_desa") idDesa: Int,
+        @Field("longitude") longitude: String,
+        @Field("latitude") latitude: String,
+        @Field("image") imageBase64: String
+    ): Call<ApiResponse>
 //
 //    // Hapus pelaporan
 //    @DELETE("api/pelaporan/{id}")

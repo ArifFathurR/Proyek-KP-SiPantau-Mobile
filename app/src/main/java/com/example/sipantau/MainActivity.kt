@@ -39,6 +39,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.recylerView.layoutManager = LinearLayoutManager(this)
         fetchPelaporan()
+
+        binding.btnTambah.setOnClickListener{
+            startActivity(Intent(this, TambahLaporanActivity::class.java))
+        }
     }
 
     private fun fetchPelaporan() {
@@ -65,4 +69,6 @@ class MainActivity : AppCompatActivity() {
             })
 
     }
+
+
 }

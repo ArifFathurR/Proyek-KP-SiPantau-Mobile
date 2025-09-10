@@ -58,6 +58,7 @@
         tools:listitem="@layout/item_list_laporan" />
     
     <ImageView
+        android:id="@+id/btnTambah"
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:src="@drawable/button"
