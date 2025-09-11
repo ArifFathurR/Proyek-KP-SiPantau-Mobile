@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         // 🔥 load data pertama kali
         fetchPelaporan()
 
+
         // 🔥 SwipeRefreshLayout listener
         binding.swipeRefresh.setOnRefreshListener {
             // tampilkan animasi 2 detik
@@ -74,6 +75,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        binding.btnTambah.setOnClickListener{
+            startActivity(Intent(this, TambahLaporanActivity::class.java))
+        }
+
     }
 
     private fun fetchPelaporan() {
@@ -129,4 +135,6 @@ class MainActivity : AppCompatActivity() {
                 }
             })
     }
+
+
 }

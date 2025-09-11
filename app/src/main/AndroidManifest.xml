@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
 
     <application
@@ -29,6 +32,10 @@
         <activity android:name=".WallcomeActivity"/>
         <activity android:name=".auth.LoginActivity"/>
         <activity android:name=".MainActivity"/>
+        <activity android:name=".TambahLaporanActivity"/>
     </application>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
 </manifest>

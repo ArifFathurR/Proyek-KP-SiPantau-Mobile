@@ -1,6 +1,6 @@
 package com.example.sipantau.model
 
-data class GeneralResponse(
+data class ApiResponse(
     val status: Boolean,
     val message: String
 )
