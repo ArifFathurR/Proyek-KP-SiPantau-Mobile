@@ -58,4 +58,12 @@ dependencies {
     implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
 
+    // CameraX core
+    implementation ("androidx.camera:camera-core:1.2.3")
+    implementation ("androidx.camera:camera-camera2:1.2.3")
+
+    // CameraX Lifecycle & View
+    implementation ("androidx.camera:camera-lifecycle:1.2.3")
+    implementation ("androidx.camera:camera-view:1.2.3")
+
 }

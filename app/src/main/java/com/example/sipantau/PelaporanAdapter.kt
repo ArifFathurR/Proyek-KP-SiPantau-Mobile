@@ -30,7 +30,7 @@ class PelaporanAdapter(private val list: List<PelaporanResponse>) :
         holder.binding.textView.text = item.resume ?: "-"
 
         // Load gambar
-        val imageUrl = "http://10.0.2.2:8080/${item.imagepath}"
+        val imageUrl = "http://10.14.12.35:8080/${item.imagepath}"
         Glide.with(holder.itemView.context)
             .load(imageUrl)
             .placeholder(R.drawable.default_image)

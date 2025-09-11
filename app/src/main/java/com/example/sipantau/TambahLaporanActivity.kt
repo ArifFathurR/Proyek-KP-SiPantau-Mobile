@@ -2,42 +2,37 @@ package com.example.sipantau
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
 import com.example.sipantau.api.ApiClient
-//import com.example.sipantau.api.ApiService
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.ActivityTambahLaporanBinding
 import com.example.sipantau.model.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import android.util.Base64
-
-
 
 class TambahLaporanActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTambahLaporanBinding
-    private var fusedLocationClient: FusedLocationProviderClient? = null
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var cameraExecutor: ExecutorService
     private var imageCapture: ImageCapture? = null
 
@@ -48,133 +43,85 @@ class TambahLaporanActivity : AppCompatActivity() {
     private var idKecamatan: Int? = null
     private var idDesa: Int? = null
 
+    // Request permission kamera + storage
+    private val cameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val granted = permissions[Manifest.permission.CAMERA] == true
+            if (granted) startCamera()
+            else Toast.makeText(this, "Izin kamera ditolak", Toast.LENGTH_SHORT).show()
+        }
+
+    // Request permission lokasi
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) getCurrentLocation()
+            else Toast.makeText(this, "Izin lokasi ditolak", Toast.LENGTH_SHORT).show()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityTambahLaporanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
-        // Tombol kembali
         binding.btnKembali.setOnClickListener { finish() }
 
-        // Isi tanggal & waktu otomatis
+        // Set tanggal & waktu otomatis
         val now = Calendar.getInstance()
         val sdfTanggal = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val sdfWaktu = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         binding.edtTglKegiatan.setText("${sdfTanggal.format(now.time)} ${sdfWaktu.format(now.time)}")
-        binding.edtTglKegiatan.isEnabled = false // readonly
+        binding.edtTglKegiatan.isEnabled = false
 
-        // Ambil data dari API
+        // Load API
         loadKegiatan()
         loadKecamatan()
 
-        // Event: kecamatan dipilih -> load desa
-        binding.spinnerKecamatan.setOnItemClickListener { _, _, position, _ ->
-            val kecamatan = (binding.spinnerKecamatan.tag as List<Kecamatan>)[position]
-            idKecamatan = kecamatan.idkec
-            loadDesa(idKecamatan!!)
+        // Spinner listener
+        binding.spinnerKecamatan.setOnItemClickListener { _, _, pos, _ ->
+            (binding.spinnerKecamatan.tag as? List<Kecamatan>)?.get(pos)?.let {
+                idKecamatan = it.idkec
+                loadDesa(it.idkec)
+            }
         }
-
-        // Event: kegiatan dipilih
-        binding.spinnerKegiatan.setOnItemClickListener { _, _, position, _ ->
-            val kegiatan = (binding.spinnerKegiatan.tag as List<Kegiatan>)[position]
-            idKegiatan = kegiatan.id_kegiatan_detail
+        binding.spinnerKegiatan.setOnItemClickListener { _, _, pos, _ ->
+            (binding.spinnerKegiatan.tag as? List<Kegiatan>)?.get(pos)?.let { idKegiatan = it.id_kegiatan_detail }
         }
-
-        // Event: desa dipilih
-        binding.spinnerDesa.setOnItemClickListener { _, _, position, _ ->
-            val desa = (binding.spinnerDesa.tag as List<Desa>)[position]
-            idDesa = desa.iddesa
+        binding.spinnerDesa.setOnItemClickListener { _, _, pos, _ ->
+            (binding.spinnerDesa.tag as? List<Desa>)?.get(pos)?.let { idDesa = it.iddesa }
         }
 
         // Ambil lokasi
-        binding.btnKoordinat.setOnClickListener { getCurrentLocation() }
+        binding.btnKoordinat.setOnClickListener { checkLocationPermission() }
 
-        // Start kamera
-        startCamera()
+        // Cek kamera permission & start camera
+        checkCameraPermission()
 
-        // Executor buat background
-        cameraExecutor = Executors.newSingleThreadExecutor()
+        // Tombol simpan
+        binding.btnSimpan.setOnClickListener { takePhotoAndUpload() }
+    }
 
-        // Tombol simpan = ambil foto + upload
-        binding.btnSimpan.setOnClickListener {
-            takePhotoAndUpload()
+    private fun checkCameraPermission() {
+        val cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        val storageGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+
+        if (cameraGranted && storageGranted) startCamera()
+        else cameraPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+    }
+
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            getCurrentLocation()
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-
     }
 
-    // 🔹 Load data Kegiatan
-    private fun loadKegiatan() {
-        ApiClient.instance.getKegiatan("Bearer $token").enqueue(object : Callback<KegiatanResponse> {
-            override fun onResponse(call: Call<KegiatanResponse>, response: Response<KegiatanResponse>) {
-                if (response.isSuccessful) {
-                    val data = response.body()?.data ?: emptyList()
-                    binding.spinnerKegiatan.setAdapter(
-                        ArrayAdapter(this@TambahLaporanActivity,
-                            android.R.layout.simple_dropdown_item_1line,
-                            data.map { "${it.nama_kegiatan_detail} (${it.bulan})" })
-                    )
-                    binding.spinnerKegiatan.tag = data
-                }
-            }
-            override fun onFailure(call: Call<KegiatanResponse>, t: Throwable) {}
-        })
-    }
-
-    // 🔹 Load data Kecamatan
-    private fun loadKecamatan() {
-        ApiClient.instance.getKecamatan("Bearer $token").enqueue(object : Callback<KecamatanResponse> {
-            override fun onResponse(call: Call<KecamatanResponse>, response: Response<KecamatanResponse>) {
-                if (response.isSuccessful) {
-                    val data = response.body()?.data ?: emptyList()
-                    binding.spinnerKecamatan.setAdapter(
-                        ArrayAdapter(this@TambahLaporanActivity,
-                            android.R.layout.simple_dropdown_item_1line,
-                            data.map { it.nmkec })
-                    )
-                    binding.spinnerKecamatan.tag = data
-                }
-            }
-            override fun onFailure(call: Call<KecamatanResponse>, t: Throwable) {}
-        })
-    }
-
-    // 🔹 Load data Desa
-    private fun loadDesa(idKec: Int) {
-        ApiClient.instance.getDesa("Bearer $token", idKec).enqueue(object : Callback<DesaResponse> {
-            override fun onResponse(call: Call<DesaResponse>, response: Response<DesaResponse>) {
-                if (response.isSuccessful) {
-                    val data = response.body()?.data ?: emptyList()
-                    binding.spinnerDesa.setAdapter(
-                        ArrayAdapter(this@TambahLaporanActivity,
-                            android.R.layout.simple_dropdown_item_1line,
-                            data.map { it.nmdesa })
-                    )
-                    binding.spinnerDesa.tag = data
-                }
-            }
-            override fun onFailure(call: Call<DesaResponse>, t: Throwable) {}
-        })
-    }
-
-    // 🔹 Ambil lokasi
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) getCurrentLocation()
-            else Toast.makeText(this, "Izin lokasi ditolak", Toast.LENGTH_SHORT).show()
-        }
-
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     private fun getCurrentLocation() {
-        val client = fusedLocationClient ?: return
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            return
-        }
-        client.lastLocation.addOnSuccessListener { location ->
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
                 binding.edtLongitude.setText(location.longitude.toString())
                 binding.edtLatitude.setText(location.latitude.toString())
@@ -188,23 +135,23 @@ class TambahLaporanActivity : AppCompatActivity() {
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val cameraProvider = cameraProviderFuture.get()
 
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(binding.previewView.surfaceProvider)
-            }
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setTargetRotation(binding.previewView.display.rotation)
+                .build()
+                .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
 
-            imageCapture = ImageCapture.Builder().build()
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetRotation(binding.previewView.display.rotation)
+                .build()
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
-                )
+                cameraProvider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
             } catch (e: Exception) {
                 Toast.makeText(this, "Kamera gagal: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -212,15 +159,11 @@ class TambahLaporanActivity : AppCompatActivity() {
     }
 
     private fun takePhotoAndUpload() {
-        val imageCapture = imageCapture ?: return
-
+        val capture = imageCapture ?: return
         val photoFile = File(externalMediaDirs.first(), "${System.currentTimeMillis()}.jpg")
-
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(this),
+        capture.takePicture(outputOptions, ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Toast.makeText(this@TambahLaporanActivity, "Gagal ambil foto: ${exc.message}", Toast.LENGTH_SHORT).show()
@@ -228,35 +171,45 @@ class TambahLaporanActivity : AppCompatActivity() {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     Toast.makeText(this@TambahLaporanActivity, "Foto tersimpan", Toast.LENGTH_SHORT).show()
-
-                    // 🔹 Convert ke Base64 dan kirim ke API
-                    val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-                    val imageBase64 = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
-
-                    uploadData(imageBase64)
+                    uploadData(photoFile)
                 }
-            }
-        )
+            })
     }
 
-    private fun uploadData(imageBase64: String) {
+    private fun uploadData(photoFile: File) {
+        val idKegiatanPart = RequestBody.create("text/plain".toMediaTypeOrNull(), (idKegiatan ?: 0).toString())
+        val idKecamatanPart = RequestBody.create("text/plain".toMediaTypeOrNull(), (idKecamatan ?: 0).toString())
+        val idDesaPart = RequestBody.create("text/plain".toMediaTypeOrNull(), (idDesa ?: 0).toString())
+        val resumePart = RequestBody.create("text/plain".toMediaTypeOrNull(), binding.edtResume.text.toString())
+        val longitudePart = RequestBody.create("text/plain".toMediaTypeOrNull(), binding.edtLongitude.text.toString())
+        val latitudePart = RequestBody.create("text/plain".toMediaTypeOrNull(), binding.edtLatitude.text.toString())
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val tanggalPart = RequestBody.create("text/plain".toMediaTypeOrNull(), sdf.format(Date()))
+
+        val filePart = MultipartBody.Part.createFormData(
+            "image",
+            photoFile.name,
+            RequestBody.create("image/jpeg".toMediaTypeOrNull(), photoFile)
+        )
+
         ApiClient.instance.tambahPelaporan(
             "Bearer $token",
-            idKegiatan ?: 0,
-            idKecamatan ?: 0,
-            idDesa ?: 0,
-            binding.edtLongitude.text.toString(),
-            binding.edtLatitude.text.toString(),
-            imageBase64
+            idKegiatanPart,
+            idKecamatanPart,
+            idDesaPart,
+            resumePart,
+            longitudePart,
+            latitudePart,
+            tanggalPart,
+            filePart
         ).enqueue(object : Callback<ApiResponse> {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                 if (response.isSuccessful) {
                     Toast.makeText(this@TambahLaporanActivity, "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    Toast.makeText(this@TambahLaporanActivity, "Gagal simpan data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TambahLaporanActivity, "Gagal simpan data: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -266,8 +219,44 @@ class TambahLaporanActivity : AppCompatActivity() {
         })
     }
 
+
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+    }
+
+    // --- API Loader Methods ---
+    private fun loadKegiatan() {
+        ApiClient.instance.getKegiatan("Bearer $token").enqueue(object : Callback<KegiatanResponse> {
+            override fun onResponse(call: Call<KegiatanResponse>, response: Response<KegiatanResponse>) {
+                val data = response.body()?.data ?: emptyList()
+                binding.spinnerKegiatan.setAdapter(ArrayAdapter(this@TambahLaporanActivity, android.R.layout.simple_dropdown_item_1line, data.map { "${it.nama_kegiatan_detail} (${it.bulan})" }))
+                binding.spinnerKegiatan.tag = data
+            }
+            override fun onFailure(call: Call<KegiatanResponse>, t: Throwable) {}
+        })
+    }
+
+    private fun loadKecamatan() {
+        ApiClient.instance.getKecamatan("Bearer $token").enqueue(object : Callback<KecamatanResponse> {
+            override fun onResponse(call: Call<KecamatanResponse>, response: Response<KecamatanResponse>) {
+                val data = response.body()?.data ?: emptyList()
+                binding.spinnerKecamatan.setAdapter(ArrayAdapter(this@TambahLaporanActivity, android.R.layout.simple_dropdown_item_1line, data.map { it.nmkec }))
+                binding.spinnerKecamatan.tag = data
+            }
+            override fun onFailure(call: Call<KecamatanResponse>, t: Throwable) {}
+        })
+    }
+
+    private fun loadDesa(idKec: Int) {
+        ApiClient.instance.getDesa("Bearer $token", idKec).enqueue(object : Callback<DesaResponse> {
+            override fun onResponse(call: Call<DesaResponse>, response: Response<DesaResponse>) {
+                val data = response.body()?.data ?: emptyList()
+                binding.spinnerDesa.setAdapter(ArrayAdapter(this@TambahLaporanActivity, android.R.layout.simple_dropdown_item_1line, data.map { it.nmdesa }))
+                binding.spinnerDesa.tag = data
+            }
+            override fun onFailure(call: Call<DesaResponse>, t: Throwable) {}
+        })
     }
 }

@@ -2,11 +2,14 @@ package com.example.sipantau.api
 import retrofit2.Call
 import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
+import com.example.sipantau.model.ApiResponse
 import com.example.sipantau.model.UserData
 import com.example.sipantau.model.PelaporanWrapper
 import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.KecamatanResponse
 import com.example.sipantau.model.DesaResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 interface ApiService {
     // Login
@@ -49,17 +52,21 @@ interface ApiService {
     ): Call<DesaResponse>
 
 
-    @FormUrlEncoded
+    @Multipart
     @POST("api/pelaporan/tambah")
     fun tambahPelaporan(
         @Header("Authorization") token: String,
-        @Field("id_kegiatan") idKegiatan: Int,
-        @Field("id_kecamatan") idKecamatan: Int,
-        @Field("id_desa") idDesa: Int,
-        @Field("longitude") longitude: String,
-        @Field("latitude") latitude: String,
-        @Field("image") imageBase64: String
+        @Part("id_kegiatan") idKegiatan: RequestBody,
+        @Part("id_kecamatan") idKecamatan: RequestBody,
+        @Part("id_desa") idDesa: RequestBody,
+        @Part("resume") resume: RequestBody,
+        @Part("longitude") longitude: RequestBody,
+        @Part("latitude") latitude: RequestBody,
+        @Part("tanggal") tanggal: RequestBody,
+        @Part image: MultipartBody.Part
     ): Call<ApiResponse>
+
+
 //
 //    // Hapus pelaporan
 //    @DELETE("api/pelaporan/{id}")
