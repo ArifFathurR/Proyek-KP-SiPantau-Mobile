@@ -27,7 +27,7 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<PelaporanWrapper>
 
-    @DELETE("api/pelaporan/{id}")
+    @DELETE("api/pelaporan/hapus/{id}")
     fun deletePelaporan(
         @Header("Authorization") token: String,
         @Path("id") id: Int
