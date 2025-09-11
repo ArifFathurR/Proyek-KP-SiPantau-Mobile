@@ -31,7 +31,9 @@ class PelaporanAdapter(
         holder.binding.tanggal.text = item.tanggal_transaksi
         holder.binding.textView.text = item.resume ?: "-"
 
-        val imageUrl = "http://10.0.2.2:8080/${item.imagepath}"
+        // Load gambar
+        val imageUrl = "http://10.14.12.35:8080/${item.imagepath}"
+
         Glide.with(holder.itemView.context)
             .load(imageUrl)
             .placeholder(com.example.sipantau.R.drawable.default_image)
