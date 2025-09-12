@@ -7,7 +7,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.CAMERA"/>
 
-
     <application
         android:allowBackup="true"
         android:networkSecurityConfig="@xml/network_security_config"
@@ -33,6 +32,7 @@
         <activity android:name=".auth.LoginActivity"/>
         <activity android:name=".MainActivity"/>
         <activity android:name=".TambahLaporanActivity"/>
+        <activity android:name=".DetailLaporan"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

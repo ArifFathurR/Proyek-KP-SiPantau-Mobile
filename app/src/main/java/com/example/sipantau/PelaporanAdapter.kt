@@ -1,5 +1,6 @@
 package com.example.sipantau
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +33,7 @@ class PelaporanAdapter(
         holder.binding.textView.text = item.resume ?: "-"
 
         // Load gambar
-        val imageUrl = "http://10.14.12.35:8080/${item.imagepath}"
+        val imageUrl = "http://10.0.2.2:8080/${item.imagepath}"
 
         Glide.with(holder.itemView.context)
             .load(imageUrl)
@@ -44,6 +45,19 @@ class PelaporanAdapter(
         holder.binding.btnDelete.setOnClickListener {
             onDeleteClick(item, position)
         }
+
+        // ✅ klik item → pindah ke DetailLaporan
+        holder.itemView.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, DetailLaporan::class.java).apply {
+                putExtra("judul", item.nama_kegiatan_detail)
+                putExtra("tanggal", item.tanggal_transaksi)
+                putExtra("resume", item.resume)
+                putExtra("gambar", item.imagepath)
+            }
+            context.startActivity(intent)
+        }
+
     }
 
     // 🔥 Tambahan untuk update list tanpa recreate adapter
@@ -60,4 +74,7 @@ class PelaporanAdapter(
             notifyItemRemoved(position)
         }
     }
+
+
+
 }
