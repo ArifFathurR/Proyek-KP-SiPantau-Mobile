@@ -53,6 +53,7 @@
             >
 
             <TextView
+                android:id="@+id/judul"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Judul Kegiatan"
@@ -95,7 +96,7 @@
                 />
 
             <TextView
-                id="@+id/tanggal"
+                android:id="@+id/tanggal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
@@ -113,6 +114,7 @@
                 android:textColor="@color/btn_color"
                 android:textStyle="bold"
                 android:textSize="12sp"
+                android:visibility="gone"
                 />
 
             <TextView
@@ -123,6 +125,7 @@
                 android:textSize="12sp"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="10dp"
+                android:visibility="gone"
                 />
 
             <TextView
@@ -137,6 +140,7 @@
                 />
 
             <ImageView
+                android:id="@+id/gambar"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:src="@drawable/default_image"
