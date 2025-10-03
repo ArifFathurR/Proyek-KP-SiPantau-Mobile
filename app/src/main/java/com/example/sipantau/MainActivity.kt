@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.ActivityMainBinding
