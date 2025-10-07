@@ -23,7 +23,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="32dp"
         android:text="Hallo, Arif"
-        android:textSize="20dp"
+        android:textSize="20sp"
         app:layout_constraintStart_toEndOf="@+id/gambar_profil"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -45,8 +45,6 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-
-
         app:layout_constraintTop_toBottomOf="@+id/gambar_profil">
 
         <LinearLayout
@@ -80,7 +78,7 @@
                         android:layout_marginTop="20dp"
                         android:layout_marginEnd="40dp"
                         android:text="230"
-                        android:textSize="20dp"
+                        android:textSize="20sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
@@ -95,7 +93,6 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/imageView"
                         app:layout_constraintVertical_bias="0.305" />
-
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -127,7 +124,7 @@
                         android:layout_marginTop="20dp"
                         android:layout_marginEnd="40dp"
                         android:text="7/8"
-                        android:textSize="20dp"
+                        android:textSize="20sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
@@ -143,9 +140,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/ic2"
                         app:layout_constraintVertical_bias="0.305" />
 
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
 
             </androidx.cardview.widget.CardView>
 
@@ -170,7 +165,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-
                     />
 
                 <TextView
@@ -179,11 +173,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="40dp"
                     android:text="8/10"
-                    android:textSize="20dp"
+                    android:textSize="20sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/ic_reting"
-
                     />
 
                 <TextView
@@ -206,21 +199,21 @@
         app:layout_constraintTop_toBottomOf="@+id/l1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="20dp"
             android:layout_marginVertical="10dp"
-            app:cardCornerRadius="10dp"
-            >
+            app:cardCornerRadius="10dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:gravity="center"
-                >
+                android:gravity="center">
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -230,15 +223,12 @@
                         android:layout_height="60dp"
                         android:backgroundTint="@color/blue"
                         android:layout_margin="5dp"
-                        app:cardCornerRadius="10dp"
-                        >
+                        app:cardCornerRadius="10dp">
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:src="@drawable/ic_kegiatan"
-                            android:layout_gravity="center"
-                            />
-
+                            android:layout_gravity="center"/>
                     </androidx.cardview.widget.CardView>
                     <TextView
                         android:id="@+id/tx1"
@@ -247,9 +237,9 @@
                         android:textAlignment="center"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content"
-                        android:text="Pantau Aktivitas"
-                        />
+                        android:text="Pantau Aktivitas"/>
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -259,15 +249,12 @@
                         android:layout_height="60dp"
                         android:backgroundTint="@color/blue"
                         android:layout_margin="5dp"
-                        app:cardCornerRadius="10dp"
-                        >
+                        app:cardCornerRadius="10dp">
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:src="@drawable/pantauanprogres"
-                            android:layout_gravity="center"
-                            />
-
+                            android:layout_gravity="center"/>
                     </androidx.cardview.widget.CardView>
                     <TextView
                         android:id="@+id/tx2"
@@ -276,9 +263,9 @@
                         android:textAlignment="center"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content"
-                        android:text="Pantauan Progress"
-                        />
+                        android:text="Pantauan Progress"/>
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -288,15 +275,12 @@
                         android:layout_height="60dp"
                         android:backgroundTint="@color/blue"
                         android:layout_margin="5dp"
-                        app:cardCornerRadius="10dp"
-                        >
+                        app:cardCornerRadius="10dp">
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:src="@drawable/kinerjahaarian"
-                            android:layout_gravity="center"
-                            />
-
+                            android:layout_gravity="center"/>
                     </androidx.cardview.widget.CardView>
                     <TextView
                         android:id="@+id/tx3"
@@ -305,9 +289,9 @@
                         android:textAlignment="center"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content"
-                        android:text="Kinerja Aktivitas"
-                        />
+                        android:text="Kinerja Aktivitas"/>
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -317,15 +301,12 @@
                         android:layout_height="60dp"
                         android:backgroundTint="@color/blue"
                         android:layout_margin="5dp"
-                        app:cardCornerRadius="10dp"
-                        >
+                        app:cardCornerRadius="10dp">
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:src="@drawable/achievement"
-                            android:layout_gravity="center"
-                            />
-
+                            android:layout_gravity="center"/>
                     </androidx.cardview.widget.CardView>
                     <TextView
                         android:id="@+id/tx4"
@@ -334,9 +315,9 @@
                         android:textAlignment="center"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content"
-                        android:text="Achievement"
-                        />
+                        android:text="Achievement"/>
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -346,15 +327,12 @@
                         android:layout_height="60dp"
                         android:backgroundTint="@color/blue"
                         android:layout_margin="5dp"
-                        app:cardCornerRadius="10dp"
-                        >
+                        app:cardCornerRadius="10dp">
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:src="@drawable/testimonifeedback"
-                            android:layout_gravity="center"
-                            />
-
+                            android:layout_gravity="center"/>
                     </androidx.cardview.widget.CardView>
                     <TextView
                         android:id="@+id/text"
@@ -363,34 +341,90 @@
                         android:textAlignment="center"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content"
-                        android:text="Testimoni Feedback"
-                        />
+                        android:text="Testimoni Feedback"/>
                 </LinearLayout>
             </LinearLayout>
-
 
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
-
 
     <TextView
         android:id="@+id/txKegiatan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Daftar Kegiatan Saya"
+        android:textSize="16sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_margin="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
         app:layout_constraintTop_toBottomOf="@+id/l2" />
 
+    <!-- Tab Layout untuk Aktif dan Tidak Aktif -->
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
+        app:layout_constraintTop_toBottomOf="@+id/txKegiatan"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/tabAktif"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            app:cardCornerRadius="15dp"
+            app:cardBackgroundColor="#B3D9FF"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aktif"
+                android:textColor="#000000"
+                android:textSize="13sp"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:gravity="center"/>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/tabTidakAktif"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="15dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tidak Aktif"
+                android:textColor="#000000"
+                android:textSize="13sp"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:gravity="center"/>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <!-- RecyclerView untuk List Kegiatan -->
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvKegiatan"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="20dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="20dp"
         tools:listitem="@layout/item_list_kegiatan"
-        app:layout_constraintTop_toBottomOf="@+id/txKegiatan" />
-    
-    
+        app:layout_constraintTop_toBottomOf="@+id/tabLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

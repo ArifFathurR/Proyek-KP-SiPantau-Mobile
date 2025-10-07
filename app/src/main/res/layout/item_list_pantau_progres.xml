@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    app:cardCornerRadius="5dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <!-- Jumlah Realisasi -->
+        <TextView
+            android:id="@+id/tvJumlahRealisasi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Jumlah Realisasi : 20"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnHapus" />
+
+        <!-- Deskripsi/Detail Progress (Placeholder) -->
+        <TextView
+            android:id="@+id/tvDetailProgress1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="--------------------------------------------"
+            android:textColor="#666666"
+            android:textSize="13sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@+id/tvJumlahRealisasi"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnHapus" />
+
+        <TextView
+            android:id="@+id/tvDetailProgress2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="--------------------------------------------"
+            android:textColor="#666666"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@+id/tvDetailProgress1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnHapus" />
+
+        <!-- Tombol Hapus -->
+        <ImageView
+            android:id="@+id/btnHapus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_delete"
+            android:padding="8dp"
+            app:tint="#FF0000"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
