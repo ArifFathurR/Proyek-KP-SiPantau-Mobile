@@ -28,11 +28,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Dasboard"/>
         <activity android:name=".WallcomeActivity"/>
         <activity android:name=".auth.LoginActivity"/>
-        <activity android:name=".MainActivity"/>
-        <activity android:name=".TambahLaporanActivity"/>
-        <activity android:name=".DetailLaporan"/>
+<!--        <activity android:name=".MainActivity"/>-->
+<!--        <activity android:name=".TambahLaporanActivity"/>-->
+<!--        <activity android:name=".DetailLaporan"/>-->
     </application>
     <uses-feature
         android:name="android.hardware.camera"

@@ -20,7 +20,7 @@ class Splash : AppCompatActivity() {
 
             if (token != null) {
                 // Jika sudah login → MainActivity
-                startActivity(Intent(this, MainActivity::class.java))
+                startActivity(Intent(this, Dasboard::class.java))
             } else {
                 // Jika belum login → LoginActivity
                 startActivity(Intent(this, WallcomeActivity::class.java))

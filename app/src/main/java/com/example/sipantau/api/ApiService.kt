@@ -15,9 +15,9 @@ import okhttp3.RequestBody
 interface ApiService {
     // Login
     @FormUrlEncoded
-    @POST("api/login")
+    @POST("auth/login")
     fun login(
-        @Field("sobat_id") sobatId: String,
+        @Field("email") sobatId: String,
         @Field("password") password: String
     ): Call<LoginResponse>
 
@@ -27,51 +27,51 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<UserData>
 
-    @GET("api/pelaporan")
-    fun getPelaporan(
-        @Header("Authorization") token: String
-    ): Call<PelaporanWrapper>
-
-    @DELETE("api/pelaporan/hapus/{id}")
-    fun deletePelaporan(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    ): Call<DeleteResponse>
-
-
-    // Get Kegiatan
-    @GET("api/pelaporan/kegiatan")
-    fun getKegiatan(
-        @Header("Authorization") token: String
-    ): Call<KegiatanResponse>
-
-    // Get Kecamatan
-    @GET("api/lokasi/kecamatan")
-    fun getKecamatan(
-        @Header("Authorization") token: String
-    ): Call<KecamatanResponse>
-
-    // Get Desa (per-kecamatan)
-    @GET("api/lokasi/desa/{idkec}")
-    fun getDesa(
-        @Header("Authorization") token: String,
-        @Path("idkec") idkec: Int
-    ): Call<DesaResponse>
-
-
-    @Multipart
-    @POST("api/pelaporan/tambah")
-    fun tambahPelaporan(
-        @Header("Authorization") token: String,
-        @Part("id_kegiatan") idKegiatan: RequestBody,
-        @Part("id_kecamatan") idKecamatan: RequestBody,
-        @Part("id_desa") idDesa: RequestBody,
-        @Part("resume") resume: RequestBody,
-        @Part("longitude") longitude: RequestBody,
-        @Part("latitude") latitude: RequestBody,
-        @Part("tanggal") tanggal: RequestBody,
-        @Part image: MultipartBody.Part
-    ): Call<ApiResponse>
+//    @GET("api/pelaporan")
+//    fun getPelaporan(
+//        @Header("Authorization") token: String
+//    ): Call<PelaporanWrapper>
+//
+//    @DELETE("api/pelaporan/hapus/{id}")
+//    fun deletePelaporan(
+//        @Header("Authorization") token: String,
+//        @Path("id") id: Int
+//    ): Call<DeleteResponse>
+//
+//
+//    // Get Kegiatan
+//    @GET("api/pelaporan/kegiatan")
+//    fun getKegiatan(
+//        @Header("Authorization") token: String
+//    ): Call<KegiatanResponse>
+//
+//    // Get Kecamatan
+//    @GET("api/lokasi/kecamatan")
+//    fun getKecamatan(
+//        @Header("Authorization") token: String
+//    ): Call<KecamatanResponse>
+//
+//    // Get Desa (per-kecamatan)
+//    @GET("api/lokasi/desa/{idkec}")
+//    fun getDesa(
+//        @Header("Authorization") token: String,
+//        @Path("idkec") idkec: Int
+//    ): Call<DesaResponse>
+//
+//
+//    @Multipart
+//    @POST("api/pelaporan/tambah")
+//    fun tambahPelaporan(
+//        @Header("Authorization") token: String,
+//        @Part("id_kegiatan") idKegiatan: RequestBody,
+//        @Part("id_kecamatan") idKecamatan: RequestBody,
+//        @Part("id_desa") idDesa: RequestBody,
+//        @Part("resume") resume: RequestBody,
+//        @Part("longitude") longitude: RequestBody,
+//        @Part("latitude") latitude: RequestBody,
+//        @Part("tanggal") tanggal: RequestBody,
+//        @Part image: MultipartBody.Part
+//    ): Call<ApiResponse>
 
 
 }
