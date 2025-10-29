@@ -11,21 +11,21 @@ class Splash : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.splash) // pakai XML splash yang kamu buat
+        setContentView(R.layout.splash)
 
-        // Tunda 2 detik sebelum pindah halaman
         Handler(Looper.getMainLooper()).postDelayed({
-            val prefs = getSharedPreferences("MyAppPref", MODE_PRIVATE)
-            val token = prefs.getString("TOKEN", null)
+            val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+            val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
 
-            if (token != null) {
-                // Jika sudah login → MainActivity
+            if (!token.isNullOrEmpty()) {
+                // ✅ Masih login (walaupun offline)
                 startActivity(Intent(this, Dasboard::class.java))
             } else {
-                // Jika belum login → LoginActivity
+                // ❌ Belum login
                 startActivity(Intent(this, WallcomeActivity::class.java))
             }
+
             finish()
-        }, 2000) // 2000ms = 2 detik
+        }, 2000)
     }
 }
