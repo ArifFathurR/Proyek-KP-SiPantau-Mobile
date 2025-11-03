@@ -215,6 +215,7 @@
                 android:gravity="center">
 
                 <LinearLayout
+                    android:id="@+id/btn_pantau_progres"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
@@ -372,6 +373,7 @@
         app:layout_constraintTop_toBottomOf="@+id/txKegiatan"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Tab Aktif -->
         <androidx.cardview.widget.CardView
             android:id="@+id/tabAktif"
             android:layout_width="wrap_content"
@@ -382,6 +384,7 @@
             app:cardElevation="0dp">
 
             <TextView
+                android:id="@+id/tvTabAktif"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Aktif"
@@ -392,6 +395,7 @@
                 android:gravity="center"/>
         </androidx.cardview.widget.CardView>
 
+        <!-- Tab Tidak Aktif -->
         <androidx.cardview.widget.CardView
             android:id="@+id/tabTidakAktif"
             android:layout_width="wrap_content"
@@ -401,6 +405,7 @@
             app:cardElevation="0dp">
 
             <TextView
+                android:id="@+id/tvTabTidakAktif"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tidak Aktif"
@@ -412,6 +417,7 @@
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
+
 
     <!-- RecyclerView untuk List Kegiatan -->
     <androidx.recyclerview.widget.RecyclerView

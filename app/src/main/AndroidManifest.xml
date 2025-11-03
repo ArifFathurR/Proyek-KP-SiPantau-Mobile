@@ -31,9 +31,9 @@
         <activity android:name=".Dasboard"/>
         <activity android:name=".WallcomeActivity"/>
         <activity android:name=".auth.LoginActivity"/>
-<!--        <activity android:name=".MainActivity"/>-->
-<!--        <activity android:name=".TambahLaporanActivity"/>-->
-<!--        <activity android:name=".DetailLaporan"/>-->
+        <activity android:name=".PantauAktivitas"/>
+        <activity android:name=".KegiatanSaya"/>
+        <activity android:name=".TambahLaporan"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

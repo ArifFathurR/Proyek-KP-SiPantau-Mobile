@@ -11,9 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.ActivityMainBinding
-import com.example.sipantau.model.DeleteResponse
-import com.example.sipantau.model.PelaporanResponse
-import com.example.sipantau.model.PelaporanWrapper
+
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,8 +19,6 @@ import retrofit2.Response
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: PelaporanAdapter
-    private lateinit var layoutManager: LinearLayoutManager
 
     private val prefs by lazy { getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE) }
     private val token: String by lazy { prefs.getString(LoginActivity.PREF_TOKEN, "") ?: "" }
