@@ -19,6 +19,7 @@ class PantauAktivitas : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var pelaporanAdapter: PelaporanAdapter
     private var idPcl: Int? = null
+    private var idKegiatanDetailProses: Int? =null
     private lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +33,8 @@ class PantauAktivitas : AppCompatActivity() {
 
         // id_pcl tetap diambil dari intent (karena berasal dari kegiatan yang dipilih)
         idPcl = intent.getIntExtra("id_pcl", 0)
+        idKegiatanDetailProses = intent.getIntExtra("id_kegiatan_detail_proses", 0)
+
 
         pelaporanAdapter = PelaporanAdapter(emptyList()) { laporan ->
             Toast.makeText(
@@ -51,9 +54,24 @@ class PantauAktivitas : AppCompatActivity() {
         }
 
         binding.btnTambah.setOnClickListener {
-            val intent = Intent(this, TambahLaporan::class.java)
+            if (idPcl == null || idPcl == 0) {
+                Toast.makeText(this, "ID PCL tidak ditemukan", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (idKegiatanDetailProses == null || idKegiatanDetailProses == 0) {
+                Toast.makeText(this, "ID Kegiatan Detail Proses tidak ditemukan", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Kirim id_pcl dan id_kegiatan_detail_proses ke TambahLaporan
+            val intent = Intent(this, TambahLaporan::class.java).apply {
+                putExtra("id_pcl", idPcl)
+                putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
+            }
             startActivity(intent)
         }
+
 
         getPelaporan()
     }

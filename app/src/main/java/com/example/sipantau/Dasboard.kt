@@ -46,11 +46,11 @@ class Dasboard : AppCompatActivity() {
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             // Ambil id_pcl dari item yang diklik
             val idPcl = kegiatan.id_pcl
-//            val detail_proses = kegiatan.nama_kegiatan_detail_proses
+            val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
             if (idPcl != null) {
                 val intent = Intent(this, PantauAktivitas::class.java)
                 intent.putExtra("id_pcl", idPcl)
-//                intent.putExtra("nama_kegiatan_detail_proses", detail_proses)
+                intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()

@@ -9,6 +9,7 @@ data class KegiatanResponse(
 data class Kegiatan(
     val id_pcl: Int?,
     val id_pml: Int?,
+    val id_kegiatan_detail_proses: Int?,
     val target: String?,
     val status_approval: String?,
     val nama_kegiatan: String,

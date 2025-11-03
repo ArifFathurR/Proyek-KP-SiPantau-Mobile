@@ -57,19 +57,19 @@
             android:orientation="vertical">
 
             <!-- Dropdown Pilih Kegiatan -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/pilih_kegiatan"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="25dp"
-                android:hint="-- Pilih Kegiatan --">
+<!--            <com.google.android.material.textfield.TextInputLayout-->
+<!--                android:id="@+id/pilih_kegiatan"-->
+<!--                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="25dp"-->
+<!--                android:hint="&#45;&#45; Pilih Kegiatan &#45;&#45;">-->
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/spinnerKegiatan"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-            </com.google.android.material.textfield.TextInputLayout>
+<!--                <com.google.android.material.textfield.MaterialAutoCompleteTextView-->
+<!--                    android:id="@+id/spinnerKegiatan"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"/>-->
+<!--            </com.google.android.material.textfield.TextInputLayout>-->
 
             <!-- Tanggal Kegiatan -->
             <com.google.android.material.textfield.TextInputLayout
