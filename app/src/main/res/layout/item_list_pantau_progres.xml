@@ -28,10 +28,10 @@
 
         <!-- Deskripsi/Detail Progress (Placeholder) -->
         <TextView
-            android:id="@+id/tvDetailProgress1"
+            android:id="@+id/jml_realisasi_harian"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="--------------------------------------------"
+            android:text="Jumlah Realisasi Harian : 3"
             android:textColor="#666666"
             android:textSize="13sp"
             android:layout_marginTop="12dp"
@@ -47,7 +47,7 @@
             android:textColor="#666666"
             android:textSize="13sp"
             android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@+id/tvDetailProgress1"
+            app:layout_constraintTop_toBottomOf="@+id/jml_realisasi_harian"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btnHapus" />
 

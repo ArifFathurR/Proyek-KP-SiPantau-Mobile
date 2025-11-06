@@ -3,11 +3,9 @@ package com.example.sipantau
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
-import android.net.Uri
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -16,9 +14,7 @@ import androidx.core.content.ContextCompat
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.ActivityTambahLaporanBinding
-import com.example.sipantau.model.Desa
 import com.example.sipantau.model.DesaResponse
-import com.example.sipantau.model.Kecamatan
 import com.example.sipantau.model.KecamatanResponse
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -29,6 +25,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class TambahLaporan : AppCompatActivity() {
 
@@ -36,6 +34,7 @@ class TambahLaporan : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var imageCapture: ImageCapture? = null
     private var imageFile: File? = null
+    private lateinit var cameraExecutor: ExecutorService
 
     private var idPcl: Int = 0
     private var idKegiatanDetailProses: Int = 0
@@ -48,12 +47,13 @@ class TambahLaporan : AppCompatActivity() {
         setContentView(binding.root)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
-        // 🧭 Ambil data intent
+        // Ambil data dari intent
         idPcl = intent.getIntExtra("id_pcl", 0)
         idKegiatanDetailProses = intent.getIntExtra("id_kegiatan_detail_proses", 0)
 
-        // 🔹 Setup CameraX
+        // 🔹 Permission kamera & lokasi
         if (allPermissionsGranted()) startCamera()
         else ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
 
@@ -65,22 +65,30 @@ class TambahLaporan : AppCompatActivity() {
             getCurrentLocation()
         }
 
-        // 🔹 Simpan laporan
+        // 🔹 Simpan laporan (auto capture + upload)
         binding.btnSimpan.setOnClickListener {
-            uploadLaporan()
+            takePhotoAndUpload()
         }
     }
 
     /** -------------------- CAMERA CONFIG -------------------- */
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(binding.previewView.surfaceProvider)
-            }
 
-            imageCapture = ImageCapture.Builder().build()
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setTargetRotation(binding.previewView.display.rotation)
+                .build()
+                .also {
+                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                }
+
+            imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .build()
 
             try {
                 cameraProvider.unbindAll()
@@ -91,29 +99,40 @@ class TambahLaporan : AppCompatActivity() {
                     imageCapture
                 )
             } catch (exc: Exception) {
-                Toast.makeText(this, "Gagal mengaktifkan kamera", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gagal memulai kamera", Toast.LENGTH_SHORT).show()
             }
+
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun captureImage(): File? {
-        val file = File(externalCacheDir, "capture_${System.currentTimeMillis()}.jpg")
-        val output = ImageCapture.OutputFileOptions.Builder(file).build()
-        imageCapture?.takePicture(
-            output,
+    /** -------------------- AUTO CAPTURE + UPLOAD -------------------- */
+    private fun takePhotoAndUpload() {
+        val imageCapture = imageCapture ?: return
+
+        val photoFile = File(
+            externalMediaDirs.firstOrNull(),
+            "laporan_${System.currentTimeMillis()}.jpg"
+        )
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        Toast.makeText(this, "📸 Mengambil foto...", Toast.LENGTH_SHORT).show()
+
+        imageCapture.takePicture(
+            outputOptions,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    imageFile = file
-                    Toast.makeText(applicationContext, "Foto berhasil diambil", Toast.LENGTH_SHORT).show()
+                    imageFile = photoFile
+                    Toast.makeText(applicationContext, "✅ Foto berhasil diambil", Toast.LENGTH_SHORT).show()
+                    uploadLaporan()
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(applicationContext, "Gagal mengambil foto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "❌ Gagal mengambil foto: ${exception.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         )
-        return file
     }
 
     /** -------------------- LOKASI -------------------- */
@@ -191,6 +210,11 @@ class TambahLaporan : AppCompatActivity() {
 
     /** -------------------- UPLOAD LAPORAN -------------------- */
     private fun uploadLaporan() {
+        if (imageFile == null) {
+            Toast.makeText(this, "Silakan ambil foto terlebih dahulu", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
 
@@ -198,63 +222,6 @@ class TambahLaporan : AppCompatActivity() {
         val lat = binding.edtLatitude.text.toString().trim()
         val lon = binding.edtLongitude.text.toString().trim()
 
-        // 🧩 DEBUG LOG ke Logcat
-        android.util.Log.d("TambahLaporan", """
-        🧩 DEBUG DATA:
-        id_pcl = $idPcl
-        id_kegiatan_detail_proses = $idKegiatanDetailProses
-        selectedKecamatanId = $selectedKecamatanId
-        selectedDesaId = $selectedDesaId
-        resume = '$resume'
-        lat = '$lat'
-        lon = '$lon'
-        imageFile = ${imageFile?.path ?: "null"}
-    """.trimIndent())
-
-        // 🧠 Validasi per field
-        when {
-            idPcl == 0 -> {
-                Toast.makeText(this, "ID PCL tidak ditemukan", Toast.LENGTH_SHORT).show()
-                return
-            }
-            idKegiatanDetailProses == 0 -> {
-                Toast.makeText(this, "ID Kegiatan Detail Proses tidak ditemukan", Toast.LENGTH_SHORT).show()
-                return
-            }
-            selectedKecamatanId == null -> {
-                Toast.makeText(this, "Kecamatan belum dipilih", Toast.LENGTH_SHORT).show()
-                return
-            }
-            selectedDesaId == null -> {
-                Toast.makeText(this, "Desa belum dipilih", Toast.LENGTH_SHORT).show()
-                return
-            }
-            resume.isEmpty() -> {
-                Toast.makeText(this, "Resume belum diisi", Toast.LENGTH_SHORT).show()
-                return
-            }
-            lat.isEmpty() -> {
-                Toast.makeText(this, "Latitude belum diisi", Toast.LENGTH_SHORT).show()
-                return
-            }
-            lon.isEmpty() -> {
-                Toast.makeText(this, "Longitude belum diisi", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }
-
-        // ✅ Gunakan default image jika tidak ada hasil kamera (misalnya di emulator)
-        if (imageFile == null) {
-            val inputStream = resources.openRawResource(R.drawable.default_image)
-            val tempFile = File(cacheDir, "default_image.jpg")
-            tempFile.outputStream().use { output ->
-                inputStream.copyTo(output)
-            }
-            imageFile = tempFile
-            Toast.makeText(this, "📸 Menggunakan gambar default", Toast.LENGTH_SHORT).show()
-        }
-
-        // 🔹 Semua field terisi, lanjut upload
         val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), idPcl.toString())
         val idKegiatanBody = RequestBody.create("text/plain".toMediaTypeOrNull(), idKegiatanDetailProses.toString())
         val resumeBody = RequestBody.create("text/plain".toMediaTypeOrNull(), resume)
@@ -269,7 +236,7 @@ class TambahLaporan : AppCompatActivity() {
             RequestBody.create("image/*".toMediaTypeOrNull(), imageFile!!)
         )
 
-        Toast.makeText(this, "Mengirim laporan...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "📤 Mengirim laporan...", Toast.LENGTH_SHORT).show()
 
         ApiClient.instance.createPelaporan(
             "Bearer $token",
@@ -287,27 +254,24 @@ class TambahLaporan : AppCompatActivity() {
                     Toast.makeText(this@TambahLaporan, "✅ Laporan berhasil dikirim", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    Toast.makeText(
-                        this@TambahLaporan,
-                        "Gagal mengirim laporan (kode: ${response.code()})",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    android.util.Log.e("TambahLaporan", "Response gagal: ${response.errorBody()?.string()}")
+                    Toast.makeText(this@TambahLaporan, "❌ Gagal mengirim laporan (${response.code()})", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
-                Toast.makeText(this@TambahLaporan, "Error: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
-                android.util.Log.e("TambahLaporan", "Upload gagal", t)
+                Toast.makeText(this@TambahLaporan, "⚠️ Error: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-
-
     /** -------------------- UTIL -------------------- */
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
     }
 
     companion object {
