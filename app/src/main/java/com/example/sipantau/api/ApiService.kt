@@ -63,6 +63,11 @@ interface ApiService {
         @Part image: MultipartBody.Part
     ): Call<Void>
 
+    @DELETE("pelaporan/{id}")
+    fun hapusLaporan(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<Void>
 
 }
 

@@ -35,18 +35,11 @@ class PelaporanAdapter(
             textView.text = item.resume
             kegiatan.text = item.nama_kegiatan_detail_proses
 
-            // ✅ Tambahkan prefix "http://10.0.2.2:8081/" jika path belum mengandung http
             val imageUrl = if (!item.imagepath.isNullOrEmpty()) {
-                if (item.imagepath.startsWith("http")) {
-                    item.imagepath
-                } else {
-                    "http://10.0.2.2:8080/${item.imagepath}"
-                }
-            } else {
-                null
-            }
+                if (item.imagepath.startsWith("http")) item.imagepath
+                else "http://10.0.2.2:8080/${item.imagepath}"
+            } else null
 
-            // Load gambar pakai Glide
             if (imageUrl != null) {
                 Glide.with(context)
                     .load(imageUrl)
@@ -57,7 +50,6 @@ class PelaporanAdapter(
                 gambar.setImageResource(R.drawable.default_image)
             }
 
-            // Tombol delete
             btnDelete.setOnClickListener {
                 onDeleteClick(item)
             }
