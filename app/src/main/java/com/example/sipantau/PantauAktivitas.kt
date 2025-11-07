@@ -16,10 +16,11 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class PantauAktivitas : AppCompatActivity() {
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var pelaporanAdapter: PelaporanAdapter
     private var idPcl: Int? = null
-    private var idKegiatanDetailProses: Int? =null
+    private var idKegiatanDetailProses: Int? = null
     private lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,15 +28,15 @@ class PantauAktivitas : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // ✅ Ambil token dari SharedPreferences, bukan dari Intent
+        // ✅ Ambil token dari SharedPreferences
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
         token = prefs.getString(LoginActivity.PREF_TOKEN, null).orEmpty()
 
-        // id_pcl tetap diambil dari intent (karena berasal dari kegiatan yang dipilih)
+        // ✅ Ambil id_pcl dan id_kegiatan_detail_proses dari Intent
         idPcl = intent.getIntExtra("id_pcl", 0)
         idKegiatanDetailProses = intent.getIntExtra("id_kegiatan_detail_proses", 0)
 
-
+        // ✅ Setup RecyclerView
         pelaporanAdapter = PelaporanAdapter(emptyList()) { laporan ->
             Toast.makeText(
                 this,
@@ -49,22 +50,20 @@ class PantauAktivitas : AppCompatActivity() {
             adapter = pelaporanAdapter
         }
 
-        binding.btnKembali.setOnClickListener {
-            finish()
-        }
+        // ✅ Tombol kembali
+        binding.btnKembali.setOnClickListener { finish() }
 
+        // ✅ Tombol tambah laporan
         binding.btnTambah.setOnClickListener {
             if (idPcl == null || idPcl == 0) {
                 Toast.makeText(this, "ID PCL tidak ditemukan", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             if (idKegiatanDetailProses == null || idKegiatanDetailProses == 0) {
                 Toast.makeText(this, "ID Kegiatan Detail Proses tidak ditemukan", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Kirim id_pcl dan id_kegiatan_detail_proses ke TambahLaporan
             val intent = Intent(this, TambahLaporan::class.java).apply {
                 putExtra("id_pcl", idPcl)
                 putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
@@ -72,7 +71,12 @@ class PantauAktivitas : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // ✅ Swipe Refresh untuk memuat ulang data
+        binding.swipeRefresh.setOnRefreshListener {
+            getPelaporan()
+        }
 
+        // ✅ Muat data awal
         getPelaporan()
     }
 
@@ -81,17 +85,27 @@ class PantauAktivitas : AppCompatActivity() {
 
         if (token.isEmpty()) {
             Toast.makeText(this, "Token tidak ditemukan. Silakan login ulang.", Toast.LENGTH_SHORT).show()
+            binding.swipeRefresh.isRefreshing = false
             return
         }
+
+        binding.swipeRefresh.isRefreshing = true // tampilkan animasi refresh
 
         apiService.getLaporan("Bearer $token", idPcl).enqueue(object : Callback<PelaporanResponse> {
             override fun onResponse(
                 call: Call<PelaporanResponse>,
                 response: Response<PelaporanResponse>
             ) {
+                binding.swipeRefresh.isRefreshing = false // hentikan animasi refresh
+
                 if (response.isSuccessful) {
                     val laporanList = response.body()?.data ?: emptyList<LaporanData>()
                     pelaporanAdapter.updateData(laporanList)
+
+                    if (laporanList.isEmpty()) {
+                        Toast.makeText(this@PantauAktivitas, "Belum ada laporan.", Toast.LENGTH_SHORT).show()
+                    }
+
                 } else {
                     Toast.makeText(
                         this@PantauAktivitas,
@@ -102,6 +116,7 @@ class PantauAktivitas : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<PelaporanResponse>, t: Throwable) {
+                binding.swipeRefresh.isRefreshing = false
                 Toast.makeText(
                     this@PantauAktivitas,
                     "Error: ${t.message}",
@@ -109,5 +124,11 @@ class PantauAktivitas : AppCompatActivity() {
                 ).show()
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 🔁 Muat ulang data setiap kali halaman aktif lagi (setelah tambah laporan)
+        getPelaporan()
     }
 }

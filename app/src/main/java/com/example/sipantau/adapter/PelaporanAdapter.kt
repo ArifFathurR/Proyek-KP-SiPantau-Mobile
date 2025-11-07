@@ -40,7 +40,7 @@ class PelaporanAdapter(
                 if (item.imagepath.startsWith("http")) {
                     item.imagepath
                 } else {
-                    "http://192.168.137.36:8080/${item.imagepath}"
+                    "http://10.0.2.2:8080/${item.imagepath}"
                 }
             } else {
                 null
