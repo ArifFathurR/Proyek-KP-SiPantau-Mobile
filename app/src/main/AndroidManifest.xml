@@ -34,6 +34,8 @@
         <activity android:name=".PantauAktivitas"/>
         <activity android:name=".KegiatanSaya"/>
         <activity android:name=".TambahLaporan"/>
+        <activity android:name=".ProgresKegiatanSaya"/>
+        <activity android:name=".PantauProgres"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"
