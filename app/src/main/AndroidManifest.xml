@@ -36,6 +36,7 @@
         <activity android:name=".TambahLaporan"/>
         <activity android:name=".ProgresKegiatanSaya"/>
         <activity android:name=".PantauProgres"/>
+        <activity android:name=".TambahProgres"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

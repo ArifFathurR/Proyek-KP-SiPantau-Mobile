@@ -1,5 +1,6 @@
 package com.example.sipantau
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -48,6 +49,17 @@ class PantauProgres : AppCompatActivity() {
         // Tarik untuk refresh
         binding.swipeRefresh.setOnRefreshListener {
             getProgres()
+        }
+
+        binding.btnTambah.setOnClickListener {
+            if (idPcl == null){
+                Toast.makeText(this@PantauProgres,"Id Pcl tidak di temukan", Toast.LENGTH_SHORT).show()
+            }
+
+            val intent = Intent(this, TambahProgres::class.java)
+            intent.putExtra("id_pcl", idPcl)
+
+            startActivity(intent)
         }
 
         binding.btnKembali.setOnClickListener { finish() }

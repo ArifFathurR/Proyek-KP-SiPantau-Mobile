@@ -87,7 +87,7 @@
                 app:hintTextColor="@color/blue">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtResume"
+                    android:id="@+id/edtCatatan"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
