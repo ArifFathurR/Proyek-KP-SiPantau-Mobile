@@ -36,8 +36,9 @@ class KegiatanAdapter(
 
     override fun getItemCount() = listKegiatan.size
 
+    // ✅ Safe update: hapus duplikat dan reset list
     fun updateData(newData: List<Kegiatan>) {
-        listKegiatan = newData
+        listKegiatan = newData.distinctBy { it.id_kegiatan_detail_proses } // pastikan unik
         notifyDataSetChanged()
     }
 }

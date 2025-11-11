@@ -8,18 +8,17 @@ import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
-import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.DashboardBinding
+import com.example.sipantau.localData.entity.KegiatanEntity
+import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
-import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.UserData
 import com.google.gson.Gson
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 
 class Dasboard : AppCompatActivity() {
 
@@ -33,18 +32,14 @@ class Dasboard : AppCompatActivity() {
         binding = DashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // ✅ Cek login
         if (!isUserLoggedIn()) {
             navigateToLogin()
             return
         }
 
-        // ✅ Tampilkan nama user
         showLoggedInUserName()
 
-        // ✅ Siapkan RecyclerView dan klik item
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
-            // Ambil id_pcl dari item yang diklik
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
             if (idPcl != null) {
@@ -62,41 +57,22 @@ class Dasboard : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // ✅ Cek koneksi & load data
-        binding.root.post {
-            if (!isOnline()) {
-                Toast.makeText(
-                    this@Dasboard,
-                    "⚠️ Kamu sedang offline. Beberapa fitur mungkin tidak tersedia.",
-                    Toast.LENGTH_LONG
-                ).show()
-            } else {
-                loadKegiatan()
-            }
-        }
+        // load data offline-online
+        binding.root.post { loadKegiatan() }
 
-        // 🔹 Tombol logout
-        binding.gambarProfil.setOnClickListener {
-            logoutUser()
-        }
-
+        binding.gambarProfil.setOnClickListener { logoutUser() }
         binding.btnPantauAktivitas.setOnClickListener {
-            val intent= Intent(this, KegiatanSaya::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, KegiatanSaya::class.java))
         }
-
         binding.btnPantauProgress.setOnClickListener {
-            val intent = Intent(this, ProgresKegiatanSaya::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, ProgresKegiatanSaya::class.java))
         }
 
-        // 🔹 Tab filter kegiatan
         binding.tabAktif.setOnClickListener {
             kegiatanAdapter.updateData(listAktif)
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
-
         binding.tabTidakAktif.setOnClickListener {
             kegiatanAdapter.updateData(listTidakAktif)
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
@@ -104,66 +80,59 @@ class Dasboard : AppCompatActivity() {
         }
     }
 
-    /** 🔹 Load data kegiatan dari API */
     private fun loadKegiatan() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
+        val repo = KegiatanRepository(this)
 
-        ApiClient.instance.getKegiatan("Bearer $token")
-            .enqueue(object : Callback<KegiatanResponse> {
-                override fun onResponse(
-                    call: Call<KegiatanResponse>,
-                    response: Response<KegiatanResponse>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val kegiatanResponse = response.body()!!
-                        val all = kegiatanResponse.kegiatan
+        lifecycleScope.launch {
+            val data: List<KegiatanEntity> = repo.getKegiatan()
 
-                        listAktif = all.filter { it.status_kegiatan == "aktif" }
-                        listTidakAktif = all.filter { it.status_kegiatan == "tidak aktif" }
+            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
+            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
 
-                        kegiatanAdapter.updateData(listAktif)
-                    } else {
-                        Toast.makeText(
-                            this@Dasboard,
-                            "Gagal memuat data kegiatan (${response.code()})",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+            kegiatanAdapter.updateData(listAktif)
 
-                override fun onFailure(call: Call<KegiatanResponse>, t: Throwable) {
-                    Toast.makeText(
-                        this@Dasboard,
-                        "Gagal terhubung ke server: ${t.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+            if (data.isEmpty() && !isOnline()) {
+                Toast.makeText(
+                    this@Dasboard,
+                    "⚠️ Kamu sedang offline. Data lokal kosong.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
-    /** 🔹 Cek login */
+    private fun KegiatanEntity.toKegiatanModel() = Kegiatan(
+        id_pcl = this.id_pcl,
+        id_pml = this.id_pml,
+        id_kegiatan_detail_proses = this.id_kegiatan_detail_proses,
+        target = this.target,
+        status_approval = this.status_approval,
+        nama_kegiatan = this.nama_kegiatan,
+        nama_kegiatan_detail_proses = this.nama_kegiatan_detail_proses,
+        tanggal_mulai = this.tanggal_mulai,
+        tanggal_selesai = this.tanggal_selesai,
+        nama_kabupaten = this.nama_kabupaten,
+        status_kegiatan = this.status_kegiatan,
+        keterangan_wilayah = this.keterangan_wilayah
+    )
+
     private fun isUserLoggedIn(): Boolean {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
         return !token.isNullOrEmpty()
     }
 
-    /** 🔹 Tampilkan nama user */
     private fun showLoggedInUserName() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val userJson = prefs.getString(LoginActivity.PREF_USER, null)
-        if (userJson != null) {
+        binding.nama.text = if (userJson != null) {
             val user = Gson().fromJson(userJson, UserData::class.java)
-            binding.nama.text = "Halo, ${user.nama_user}"
-        } else {
-            binding.nama.text = "Halo, Pengguna"
-        }
+            "Halo, ${user.nama_user}"
+        } else "Halo, Pengguna"
     }
 
-    /** 🔹 Logout */
     private fun logoutUser() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         prefs.edit()
             .remove(LoginActivity.PREF_TOKEN)
             .remove(LoginActivity.PREF_USER)
@@ -171,7 +140,6 @@ class Dasboard : AppCompatActivity() {
         navigateToLogin()
     }
 
-    /** 🔹 Navigasi ke login */
     private fun navigateToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -179,7 +147,6 @@ class Dasboard : AppCompatActivity() {
         finish()
     }
 
-    /** 🔹 Deteksi koneksi internet */
     private fun isOnline(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork ?: return false
