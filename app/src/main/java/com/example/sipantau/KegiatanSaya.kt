@@ -1,29 +1,29 @@
 package com.example.sipantau
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
-import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.KegiatanSayaBinding
+import com.example.sipantau.localData.entity.KegiatanEntity
+import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
-import com.example.sipantau.model.KegiatanResponse
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 
 class KegiatanSaya : AppCompatActivity() {
 
     private lateinit var binding: KegiatanSayaBinding
     private lateinit var kegiatanAdapter: KegiatanAdapter
-
-    private var listAktif = emptyList<Kegiatan>()
-    private var listTidakAktif = emptyList<Kegiatan>()
-    private var isDataLoaded = false // ✅ Flag mencegah double load
+    private var listAktif = listOf<Kegiatan>()
+    private var listTidakAktif = listOf<Kegiatan>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,63 +50,62 @@ class KegiatanSaya : AppCompatActivity() {
         }
 
         // 🔹 Setup tab filter
-        binding.tabAktif.setOnClickListener { showAktif() }
-        binding.tabTidakAktif.setOnClickListener { showTidakAktif() }
+        binding.tabAktif.setOnClickListener {
+            kegiatanAdapter.updateData(listAktif)
+            binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
+            binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
+        }
 
-        // 🔹 Load data kegiatan dari API
-        loadKegiatan()
+        binding.tabTidakAktif.setOnClickListener {
+            kegiatanAdapter.updateData(listTidakAktif)
+            binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
+            binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
+        }
+
+        // 🔹 Load data (offline/online)
+        binding.root.post { loadKegiatan() }
     }
 
-    private fun showAktif() {
-        kegiatanAdapter.updateData(listAktif)
-        binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
-        binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
-    }
-
-    private fun showTidakAktif() {
-        kegiatanAdapter.updateData(listTidakAktif)
-        binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
-        binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
-    }
-
-    /** 🔹 Load data kegiatan dari API */
     private fun loadKegiatan() {
-        if (isDataLoaded) return // ✅ Prevent double load
+        val repo = KegiatanRepository(this)
 
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
+        lifecycleScope.launch {
+            val data: List<KegiatanEntity> = repo.getKegiatan()
 
-        ApiClient.instance.getKegiatan("Bearer $token")
-            .enqueue(object : Callback<KegiatanResponse> {
-                override fun onResponse(
-                    call: Call<KegiatanResponse>,
-                    response: Response<KegiatanResponse>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val kegiatanResponse = response.body()!!
-                        val all = kegiatanResponse.kegiatan.distinctBy { it.id_kegiatan_detail_proses } // ✅ Remove duplicates
+            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
+            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
 
-                        listAktif = all.filter { it.status_kegiatan == "aktif" }
-                        listTidakAktif = all.filter { it.status_kegiatan == "tidak aktif" }
+            kegiatanAdapter.updateData(listAktif)
 
-                        showAktif() // Tampilkan tab aktif default
-                        isDataLoaded = true
-                    } else {
-                        Toast.makeText(
-                            this@KegiatanSaya,
-                            "Gagal memuat data kegiatan (${response.code()})",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+            if (data.isEmpty() && !isOnline()) {
+                Toast.makeText(
+                    this@KegiatanSaya,
+                    "⚠️ Kamu sedang offline. Data lokal kosong.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
 
-                override fun onFailure(call: Call<KegiatanResponse>, t: Throwable) {
-                    Toast.makeText(
-                        this@KegiatanSaya,
-                        "Gagal terhubung ke server: ${t.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+    private fun KegiatanEntity.toKegiatanModel() = Kegiatan(
+        id_pcl = this.id_pcl,
+        id_pml = this.id_pml,
+        id_kegiatan_detail_proses = this.id_kegiatan_detail_proses,
+        target = this.target,
+        status_approval = this.status_approval,
+        nama_kegiatan = this.nama_kegiatan,
+        nama_kegiatan_detail_proses = this.nama_kegiatan_detail_proses,
+        tanggal_mulai = this.tanggal_mulai,
+        tanggal_selesai = this.tanggal_selesai,
+        nama_kabupaten = this.nama_kabupaten,
+        status_kegiatan = this.status_kegiatan,
+        keterangan_wilayah = this.keterangan_wilayah
+    )
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 }

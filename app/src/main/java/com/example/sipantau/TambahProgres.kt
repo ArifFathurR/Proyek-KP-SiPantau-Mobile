@@ -4,45 +4,32 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.sipantau.api.ApiClient
+import androidx.lifecycle.lifecycleScope
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.TambahProgresBinding
-import com.example.sipantau.model.PantauProgresCreateResponse
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.sipantau.localData.entity.PantauProgresEntity
+import com.example.sipantau.localData.repository.PantauProgresRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 class TambahProgres : AppCompatActivity() {
 
     private lateinit var binding: TambahProgresBinding
+    private lateinit var repository: PantauProgresRepository
     private var idPcl: Int = 0
-    private var token: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = TambahProgresBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 🔹 Ambil data id_pcl dari intent
         idPcl = intent.getIntExtra("id_pcl", 0)
+        repository = PantauProgresRepository(this)
 
-        // 🔹 Ambil token dari user login
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        token = prefs.getString(LoginActivity.PREF_TOKEN, null)
-
-        // Jika token kosong → minta login ulang
-        if (token.isNullOrEmpty()) {
-            Toast.makeText(this, "Token tidak ditemukan. Silakan login ulang.", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
-
-        binding.btnSimpan.setOnClickListener {
-            simpanProgres()
-        }
+        binding.btnSimpan.setOnClickListener { simpanProgres() }
     }
 
     private fun simpanProgres() {
@@ -53,47 +40,35 @@ class TambahProgres : AppCompatActivity() {
             Toast.makeText(this, "Jumlah realisasi wajib diisi", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (catatan.isEmpty()) {
             Toast.makeText(this, "Catatan aktivitas wajib diisi", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val apiService = ApiClient.instance
+        val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 
-        // 🔹 Bungkus data ke dalam RequestBody
-        val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), idPcl.toString())
-        val jmlRealisasiBody = RequestBody.create("text/plain".toMediaTypeOrNull(), jmlRealisasi)
-        val catatanBody = RequestBody.create("text/plain".toMediaTypeOrNull(), catatan)
+        val entity = PantauProgresEntity(
+            local_id = 0L,
+            server_id = null,
+            id_pcl = idPcl,
+            jumlah_realisasi_absolut = jmlRealisasi.toInt(),
+            jumlah_realisasi_kumulatif = null,
+            catatan_aktivitas = catatan,
+            created_at = now,
+            is_synced = false
+        )
 
-        // 🔹 Kirim data ke server
-        apiService.createProgres("Bearer $token", idPclBody, jmlRealisasiBody, catatanBody)
-            .enqueue(object : Callback<PantauProgresCreateResponse> {
-                override fun onResponse(
-                    call: Call<PantauProgresCreateResponse>,
-                    response: Response<PantauProgresCreateResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@TambahProgres, "✅ Progres berhasil dikirim", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else {
-                        val msg = when (response.code()) {
-                            401 -> "Token tidak valid, silakan login ulang"
-                            else -> "❌ Gagal mengirim progres (${response.code()})"
-                        }
-                        Toast.makeText(this@TambahProgres, msg, Toast.LENGTH_SHORT).show()
-
-                        // Jika token tidak valid, arahkan ke login
-                        if (response.code() == 401) {
-                            startActivity(Intent(this@TambahProgres, LoginActivity::class.java))
-                            finish()
-                        }
-                    }
+        // insert via repository
+        lifecycleScope.launch {
+            val (success, localId) = repository.insertProgres(entity)
+            withContext(Dispatchers.Main) {
+                if (success) {
+                    Toast.makeText(this@TambahProgres, "✅ Progres berhasil dikirim", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@TambahProgres, "Tersimpan secara lokal (akan dikirim saat online)", Toast.LENGTH_SHORT).show()
                 }
-
-                override fun onFailure(call: Call<PantauProgresCreateResponse>, t: Throwable) {
-                    Toast.makeText(this@TambahProgres, "⚠️ Error: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
-            })
+                finish()
+            }
+        }
     }
 }

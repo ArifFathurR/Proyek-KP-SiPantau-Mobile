@@ -3,21 +3,20 @@ package com.example.sipantau
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
-import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.KegiatanSayaBinding
+import com.example.sipantau.localData.entity.KegiatanEntity
+import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
-import com.example.sipantau.model.KegiatanResponse
-import com.example.sipantau.model.UserData
-import com.google.gson.Gson
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 
 class ProgresKegiatanSaya : AppCompatActivity() {
 
@@ -28,13 +27,10 @@ class ProgresKegiatanSaya : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = KegiatanSayaBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-
-        // ✅ Setup RecyclerView dan adapter
+        // 🔹 Setup RecyclerView
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
@@ -53,12 +49,7 @@ class ProgresKegiatanSaya : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // 🔹 Load data kegiatan dari API
-        loadKegiatan()
-
-
-
-        // 🔹 Tab filter kegiatan
+        // 🔹 Setup tab filter
         binding.tabAktif.setOnClickListener {
             kegiatanAdapter.updateData(listAktif)
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
@@ -70,44 +61,51 @@ class ProgresKegiatanSaya : AppCompatActivity() {
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
+        // 🔹 Load data (offline/online)
+        binding.root.post { loadKegiatan() }
     }
 
-    /** 🔹 Load data kegiatan dari API */
     private fun loadKegiatan() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
+        val repo = KegiatanRepository(this)
 
-        ApiClient.instance.getKegiatan("Bearer $token")
-            .enqueue(object : Callback<KegiatanResponse> {
-                override fun onResponse(
-                    call: Call<KegiatanResponse>,
-                    response: Response<KegiatanResponse>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val kegiatanResponse = response.body()!!
-                        val all = kegiatanResponse.kegiatan
+        lifecycleScope.launch {
+            val data: List<KegiatanEntity> = repo.getKegiatan()
 
-                        listAktif = all.filter { it.status_kegiatan == "aktif" }
-                        listTidakAktif = all.filter { it.status_kegiatan == "tidak aktif" }
+            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
+            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
 
-                        kegiatanAdapter.updateData(listAktif)
-                    } else {
-                        Toast.makeText(
-                            this@ProgresKegiatanSaya,
-                            "Gagal memuat data kegiatan (${response.code()})",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+            kegiatanAdapter.updateData(listAktif)
 
-                override fun onFailure(call: Call<KegiatanResponse>, t: Throwable) {
-                    Toast.makeText(
-                        this@ProgresKegiatanSaya,
-                        "Gagal terhubung ke server: ${t.localizedMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+            if (data.isEmpty() && !isOnline()) {
+                Toast.makeText(
+                    this@ProgresKegiatanSaya,
+                    "⚠️ Kamu sedang offline. Data lokal kosong.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
+    private fun KegiatanEntity.toKegiatanModel() = Kegiatan(
+        id_pcl = this.id_pcl,
+        id_pml = this.id_pml,
+        id_kegiatan_detail_proses = this.id_kegiatan_detail_proses,
+        target = this.target,
+        status_approval = this.status_approval,
+        nama_kegiatan = this.nama_kegiatan,
+        nama_kegiatan_detail_proses = this.nama_kegiatan_detail_proses,
+        tanggal_mulai = this.tanggal_mulai,
+        tanggal_selesai = this.tanggal_selesai,
+        nama_kabupaten = this.nama_kabupaten,
+        status_kegiatan = this.status_kegiatan,
+        keterangan_wilayah = this.keterangan_wilayah
+    )
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 }
