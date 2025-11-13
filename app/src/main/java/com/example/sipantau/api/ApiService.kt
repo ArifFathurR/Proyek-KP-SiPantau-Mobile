@@ -3,6 +3,9 @@ import retrofit2.Call
 import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
 import com.example.sipantau.model.DesaResponse
+import com.example.sipantau.model.Feedback
+import com.example.sipantau.model.FeedbackCreateResponse
+import com.example.sipantau.model.FeedbackResponse
 import com.example.sipantau.model.KecamatanResponse
 import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.PantauProgresCreateResponse
@@ -91,6 +94,21 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Call<Void>
+
+    @Multipart
+    @POST("feedback")
+    fun CreateFeedback(
+        @Header("Authorization") token: String,
+        @Part("sobat_id") sobatId: Int,
+        @Part("feedback") feedback: String,
+        @Part("rating") rating: Int
+    ): Call<FeedbackCreateResponse>
+
+    @GET("feedback")
+    fun getFeedback(
+        @Header("Authorization") token: String
+    ): Call<FeedbackResponse>
+
 
 }
 

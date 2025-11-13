@@ -12,39 +12,30 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.auth.LoginActivity
-import com.example.sipantau.databinding.DashboardBinding
+import com.example.sipantau.databinding.ActivityKinerjaHarianBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
-import com.example.sipantau.model.Feedback
 import com.example.sipantau.model.Kegiatan
-import com.example.sipantau.model.UserData
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
-class Dasboard : AppCompatActivity() {
+class KinerjaHarian : AppCompatActivity() {
 
-    private lateinit var binding: DashboardBinding
+    private lateinit var binding: ActivityKinerjaHarianBinding
     private lateinit var kegiatanAdapter: KegiatanAdapter
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DashboardBinding.inflate(layoutInflater)
+        binding = ActivityKinerjaHarianBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (!isUserLoggedIn()) {
-            navigateToLogin()
-            return
-        }
-
-        showLoggedInUserName()
-
+        // 🔹 Setup RecyclerView
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
             if (idPcl != null) {
-                val intent = Intent(this, PantauAktivitas::class.java)
+                val intent = Intent(this, PantauProgres::class.java)
                 intent.putExtra("id_pcl", idPcl)
                 intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
                 startActivity(intent)
@@ -54,41 +45,25 @@ class Dasboard : AppCompatActivity() {
         }
 
         binding.rvKegiatan.apply {
-            layoutManager = LinearLayoutManager(this@Dasboard)
+            layoutManager = LinearLayoutManager(this@KinerjaHarian)
             adapter = kegiatanAdapter
         }
 
-        // load data offline-online
-        binding.root.post { loadKegiatan() }
-
-        binding.gambarProfil.setOnClickListener { logoutUser() }
-        binding.btnPantauAktivitas.setOnClickListener {
-            startActivity(Intent(this, KegiatanSaya::class.java))
-        }
-        binding.btnPantauProgress.setOnClickListener {
-            startActivity(Intent(this, ProgresKegiatanSaya::class.java))
-        }
-
-        binding.btnKinerjaHarian.setOnClickListener {
-            val intent = Intent(this, KinerjaHarian::class.java)
-            startActivity(intent)
-        }
-
-        binding.btnFeedback.setOnClickListener {
-            val intent = Intent(this, FeedbackUser::class.java)
-            startActivity(intent)
-        }
-
+        // 🔹 Setup tab filter
         binding.tabAktif.setOnClickListener {
             kegiatanAdapter.updateData(listAktif)
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
         binding.tabTidakAktif.setOnClickListener {
             kegiatanAdapter.updateData(listTidakAktif)
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
+        // 🔹 Load data (offline/online)
+        binding.root.post { loadKegiatan() }
     }
 
     private fun loadKegiatan() {
@@ -104,7 +79,7 @@ class Dasboard : AppCompatActivity() {
 
             if (data.isEmpty() && !isOnline()) {
                 Toast.makeText(
-                    this@Dasboard,
+                    this@KinerjaHarian,
                     "⚠️ Kamu sedang offline. Data lokal kosong.",
                     Toast.LENGTH_LONG
                 ).show()
@@ -126,37 +101,6 @@ class Dasboard : AppCompatActivity() {
         status_kegiatan = this.status_kegiatan,
         keterangan_wilayah = this.keterangan_wilayah
     )
-
-    private fun isUserLoggedIn(): Boolean {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
-        val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
-        return !token.isNullOrEmpty()
-    }
-
-    private fun showLoggedInUserName() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
-        val userJson = prefs.getString(LoginActivity.PREF_USER, null)
-        binding.nama.text = if (userJson != null) {
-            val user = Gson().fromJson(userJson, UserData::class.java)
-            "Halo, ${user.nama_user}"
-        } else "Halo, Pengguna"
-    }
-
-    private fun logoutUser() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .remove(LoginActivity.PREF_TOKEN)
-            .remove(LoginActivity.PREF_USER)
-            .apply()
-        navigateToLogin()
-    }
-
-    private fun navigateToLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
-    }
 
     private fun isOnline(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
