@@ -8,12 +8,14 @@ import com.example.sipantau.model.FeedbackCreateResponse
 import com.example.sipantau.model.FeedbackResponse
 import com.example.sipantau.model.KecamatanResponse
 import com.example.sipantau.model.KegiatanResponse
+import com.example.sipantau.model.KurvaResponse
 import com.example.sipantau.model.PantauProgresCreateResponse
 import com.example.sipantau.model.PantauProgresListResponse
 import com.example.sipantau.model.PelaporanResponse
 import com.example.sipantau.model.UserData
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.Response
 
 interface ApiService {
     // Login
@@ -108,6 +110,13 @@ interface ApiService {
     fun getFeedback(
         @Header("Authorization") token: String
     ): Call<FeedbackResponse>
+
+    @GET("kurva-petugas/{id_pcl}")
+    fun getKurvaPetugas(
+        @Header("Authorization") token: String,
+        @Path("id_pcl") idPcl: Int
+    ): Call<KurvaResponse>
+
 
 
 }

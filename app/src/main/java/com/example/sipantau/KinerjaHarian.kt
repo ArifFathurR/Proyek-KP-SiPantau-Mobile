@@ -35,7 +35,7 @@ class KinerjaHarian : AppCompatActivity() {
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
             if (idPcl != null) {
-                val intent = Intent(this, PantauProgres::class.java)
+                val intent = Intent(this, KinerjaHarianDetail::class.java)
                 intent.putExtra("id_pcl", idPcl)
                 intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
                 startActivity(intent)

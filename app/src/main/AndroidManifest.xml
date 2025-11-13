@@ -38,6 +38,8 @@
         <activity android:name=".PantauProgres"/>
         <activity android:name=".TambahProgres"/>
         <activity android:name=".FeedbackUser"/>
+        <activity android:name=".KinerjaHarian"/>
+        <activity android:name=".KinerjaHarianDetail"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"
