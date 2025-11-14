@@ -37,7 +37,7 @@ class PelaporanAdapter(
 
             val imageUrl = if (!item.imagepath.isNullOrEmpty()) {
                 if (item.imagepath.startsWith("http")) item.imagepath
-                else "http://10.0.2.2:8080/${item.imagepath}"
+                else "http://192.168.137.15:8080/${item.imagepath}"
             } else null
 
             if (imageUrl != null) {
