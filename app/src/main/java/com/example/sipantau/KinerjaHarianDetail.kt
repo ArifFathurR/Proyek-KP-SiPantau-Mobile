@@ -122,13 +122,42 @@ class KinerjaHarianDetail : AppCompatActivity() {
                     binding.swipeRefresh.isRefreshing = false
 
                     if (response.isSuccessful && (response.body()?.status == "success" || response.body()?.status == "ok")) {
-                        val data = response.body()!!.data
 
-                        // Berikan lambda onDeleteClick yang memanggil API hapus dan refresh
-                        laporanAdapter = PelaporanAdapter(data) { laporan ->
-                            val id = laporan.id_sipantau_transaksi
-                            hapusLaporan(id)
+                        val serverList = response.body()!!.data
+
+                        // ==== KONVERSI KE DisplayLaporan ====
+                        val displayList = serverList.map { s ->
+                            DisplayLaporan(
+                                isPending = false,
+                                serverId = s.id_sipantau_transaksi,
+                                resume = s.resume ?: "",
+                                latitude = s.latitude,
+                                longitude = s.longitude,
+                                imagepath = s.imagepath,
+                                image_url = s.image_url,
+                                nama_kegiatan = s.nama_kegiatan,
+                                nama_kegiatan_detail_proses = s.nama_kegiatan_detail_proses,
+                                nama_kabupaten = s.nama_kabupaten,
+                                nama_kecamatan = s.nama_kecamatan,
+                                nama_desa = s.nama_desa,
+                                created_at = s.created_at ?: "",
+                                localId = null,
+                                localImagePath = null,
+                                id_kecamatan = null,
+                                id_desa = null
+                            )
                         }
+
+                        laporanAdapter = PelaporanAdapter(
+                            displayList,
+                            onDeleteClick = { laporan ->
+                                hapusLaporan(laporan.serverId!!)
+                            },
+                            onSendClick = { laporan ->
+                                // kosong, karena server item tidak dikirim lagi
+                            }
+                        )
+
                         binding.recylerView.adapter = laporanAdapter
                     } else {
                         Toast.makeText(this@KinerjaHarianDetail, "Gagal memuat laporan", Toast.LENGTH_SHORT).show()

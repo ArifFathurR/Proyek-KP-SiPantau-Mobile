@@ -1,48 +1,54 @@
 package com.example.sipantau.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sipantau.R
 import com.example.sipantau.databinding.ItemListLaporanBinding
-import com.example.sipantau.model.LaporanData
+import com.example.sipantau.model.DisplayLaporan
 
 class PelaporanAdapter(
-    private var pelaporanList: List<LaporanData>,
-    private val onDeleteClick: (LaporanData) -> Unit
-) : RecyclerView.Adapter<PelaporanAdapter.PelaporanViewHolder>() {
+    private var items: List<DisplayLaporan>,
+    private val onDeleteClick: (DisplayLaporan) -> Unit,
+    private val onSendClick: (DisplayLaporan) -> Unit
+) : RecyclerView.Adapter<PelaporanAdapter.VH>() {
 
-    inner class PelaporanViewHolder(val binding: ItemListLaporanBinding) :
-        RecyclerView.ViewHolder(binding.root)
+    inner class VH(val b: ItemListLaporanBinding) : RecyclerView.ViewHolder(b.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PelaporanViewHolder {
-        val binding = ItemListLaporanBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return PelaporanViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val b = ItemListLaporanBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return VH(b)
     }
 
-    override fun onBindViewHolder(holder: PelaporanViewHolder, position: Int) {
-        val item = pelaporanList[position]
-        val context = holder.itemView.context
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val item = items[position]
 
-        with(holder.binding) {
-            judul.text = item.nama_kegiatan
+        with(holder.b) {
+
+            // Text fields
+            judul.text = item.nama_kegiatan ?: "Laporan"
             tanggal.text = item.created_at
             textView.text = item.resume
-            kegiatan.text = item.nama_kegiatan_detail_proses
+            kegiatan.text = item.nama_kegiatan_detail_proses ?: ""
 
-            val imageUrl = if (!item.imagepath.isNullOrEmpty()) {
-                if (item.imagepath.startsWith("http")) item.imagepath
-                else "http://192.168.137.15:8080/${item.imagepath}"
-            } else null
+            // IMAGE: pending -> localImagePath, else server (image_url or imagepath)
+            val rawImg = if (item.isPending) item.localImagePath else (item.image_url ?: item.imagepath)
 
-            if (imageUrl != null) {
-                Glide.with(context)
-                    .load(imageUrl)
+            if (!rawImg.isNullOrEmpty()) {
+                var img = rawImg.trim()
+
+                // Replace localhost to emulator host. Keep port if present.
+                // Handle variants: http://localhost/uploads/...  or http://localhost:8080/uploads/...
+                if (img.contains("localhost")) {
+                    // Replace hostname only (preserve :port if present). We'll replace "localhost" -> "10.0.2.2"
+                    img = img.replace("localhost", "10.0.2.2")
+                }
+
+                // If local file path (pending), Glide can load file path directly
+                Glide.with(root.context)
+                    .load(img)
                     .placeholder(R.drawable.default_image)
                     .error(R.drawable.default_image)
                     .into(gambar)
@@ -50,16 +56,27 @@ class PelaporanAdapter(
                 gambar.setImageResource(R.drawable.default_image)
             }
 
-            btnDelete.setOnClickListener {
-                onDeleteClick(item)
+            // DELETE button (always visible)
+            btnDelete.setOnClickListener { onDeleteClick(item) }
+
+            // SEND button visible only for pending items
+            btnSend.visibility = if (item.isPending) View.VISIBLE else View.GONE
+
+            // when clicked invoke activity's handler
+            btnSend.setOnClickListener {
+                // disable button briefly to prevent double clicks
+                it.isEnabled = false
+                onSendClick(item)
+                // re-enable after callback returns control (Activity will refresh list and rebind)
+                it.isEnabled = true
             }
         }
     }
 
-    override fun getItemCount(): Int = pelaporanList.size
+    override fun getItemCount(): Int = items.size
 
-    fun updateData(newList: List<LaporanData>) {
-        pelaporanList = newList
+    fun update(newList: List<DisplayLaporan>) {
+        items = newList
         notifyDataSetChanged()
     }
 }

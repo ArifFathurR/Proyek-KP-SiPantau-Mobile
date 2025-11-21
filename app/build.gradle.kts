@@ -78,6 +78,10 @@ dependencies {
     //kurva s
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
+    //worker
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+
 
 
 }
