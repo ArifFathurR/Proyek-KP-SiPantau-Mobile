@@ -16,6 +16,7 @@ import com.example.sipantau.databinding.KegiatanSayaBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 class KegiatanSaya : AppCompatActivity() {
@@ -30,7 +31,7 @@ class KegiatanSaya : AppCompatActivity() {
         binding = KegiatanSayaBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 🔹 Setup RecyclerView
+        // Setup RecyclerView
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
@@ -49,7 +50,6 @@ class KegiatanSaya : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // 🔹 Setup tab filter
         binding.tabAktif.setOnClickListener {
             kegiatanAdapter.updateData(listAktif)
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
@@ -62,7 +62,7 @@ class KegiatanSaya : AppCompatActivity() {
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
 
-        // 🔹 Load data (offline/online)
+        // Load data
         binding.root.post { loadKegiatan() }
     }
 
@@ -72,8 +72,11 @@ class KegiatanSaya : AppCompatActivity() {
         lifecycleScope.launch {
             val data: List<KegiatanEntity> = repo.getKegiatan()
 
-            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
-            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
+            // convert to model
+            val models = data.map { it.toKegiatanModel() }
+
+            listAktif = models.filter { it.status_kegiatan == "aktif" }
+            listTidakAktif = models.filter { it.status_kegiatan == "tidak aktif" }
 
             kegiatanAdapter.updateData(listAktif)
 

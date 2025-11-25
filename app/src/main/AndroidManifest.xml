@@ -40,6 +40,8 @@
         <activity android:name=".FeedbackUser"/>
         <activity android:name=".KinerjaHarian"/>
         <activity android:name=".KinerjaHarianDetail"/>
+        <activity android:name=".auth.Role"/>
+        <activity android:name=".DashboardPML"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

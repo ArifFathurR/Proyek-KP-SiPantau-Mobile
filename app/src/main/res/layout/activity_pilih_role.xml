@@ -12,7 +12,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:text="SiPantau Mitra"
+        android:text="SiPantau"
         android:textColor="@color/white"
         android:textSize="38sp"
         android:textStyle="bold"
@@ -33,7 +33,7 @@
         android:id="@+id/cardLogin"
         android:layout_marginTop="80dp"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="wrap_content"
         android:backgroundTint="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,69 +44,38 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:orientation="vertical">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
-                android:text="Login Pengguna"
+                android:layout_marginTop="20dp"
+                android:text="Pilib Role"
                 android:layout_gravity="center"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/idPengguna"
+            <Button
+                android:id="@+id/btn_pml"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="70dp"
-                android:hint="Email">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtIdPengguna"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/password"
+                android:text="Login Sebagai PML"
+                android:layout_margin="10dp"
+                android:backgroundTint="@color/orange"
+                />
+            <Button
+                android:id="@+id/btn_pcl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="20dp"
-                android:hint="Password">
+                android:text="Login Sebagai PCL"
+                android:layout_margin="10dp"
+                android:backgroundTint="#3BB4F9"/>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtPassword"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPassword"/>
-            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
 
     </androidx.cardview.widget.CardView>
-
-    <Button
-        android:id="@+id/btn_login"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardLogin"
-        android:layout_marginTop="20dp"
-        android:text="Log In"
-        android:textStyle="bold"
-        android:textSize="16dp"
-        android:backgroundTint="#3BB4F9"
-        android:layout_marginHorizontal="20dp"
-        />
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

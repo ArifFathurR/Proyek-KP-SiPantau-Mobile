@@ -36,9 +36,11 @@ class KegiatanAdapter(
 
     override fun getItemCount() = listKegiatan.size
 
-    // ✅ Safe update: hapus duplikat dan reset list
+    // Safe update: hapus duplikat berdasarkan primary id (fallback)
     fun updateData(newData: List<Kegiatan>) {
-        listKegiatan = newData.distinctBy { it.id_kegiatan_detail_proses } // pastikan unik
+        listKegiatan = newData.distinctBy {
+            it.id_kegiatan_detail_proses ?: it.id_pcl ?: it.id_pml ?: 0
+        }.filter { (it.id_kegiatan_detail_proses ?: it.id_pcl ?: it.id_pml ?: 0) != 0 }
         notifyDataSetChanged()
     }
 }

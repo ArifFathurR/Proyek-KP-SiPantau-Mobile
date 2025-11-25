@@ -1,4 +1,3 @@
-// localData/entity/KegiatanEntity.kt
 package com.example.sipantau.localData.entity
 
 import androidx.room.Entity

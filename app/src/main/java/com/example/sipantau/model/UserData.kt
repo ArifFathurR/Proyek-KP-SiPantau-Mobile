@@ -6,5 +6,8 @@ data class UserData(
     val email: String,
     val hp: String,
     val id_kabupaten: String,
-    val roles: List<Int>
+    val roles: List<Int>,
+    val id_pml: List<Int>,
+    val id_pcl: List<Int>
+
 )

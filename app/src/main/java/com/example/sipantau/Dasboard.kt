@@ -12,10 +12,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.auth.LoginActivity
+import com.example.sipantau.auth.Role
 import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
-import com.example.sipantau.model.Feedback
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.UserData
 import com.google.gson.Gson
@@ -33,13 +33,17 @@ class Dasboard : AppCompatActivity() {
         binding = DashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ====== CEK LOGIN ======
         if (!isUserLoggedIn()) {
             navigateToLogin()
             return
         }
 
+
+
         showLoggedInUserName()
 
+        // ====== SETUP ADAPTER ======
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             val idPcl = kegiatan.id_pcl
             val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
@@ -58,13 +62,16 @@ class Dasboard : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // load data offline-online
+        // Load data offline-online
         binding.root.post { loadKegiatan() }
 
+        // ====== BUTTON LISTENER ======
         binding.gambarProfil.setOnClickListener { logoutUser() }
+
         binding.btnPantauAktivitas.setOnClickListener {
             startActivity(Intent(this, KegiatanSaya::class.java))
         }
+
         binding.btnPantauProgress.setOnClickListener {
             startActivity(Intent(this, ProgresKegiatanSaya::class.java))
         }
@@ -84,12 +91,15 @@ class Dasboard : AppCompatActivity() {
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
         binding.tabTidakAktif.setOnClickListener {
             kegiatanAdapter.updateData(listTidakAktif)
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
     }
+
+    // ====================================================================
 
     private fun loadKegiatan() {
         val repo = KegiatanRepository(this)
@@ -127,10 +137,23 @@ class Dasboard : AppCompatActivity() {
         keterangan_wilayah = this.keterangan_wilayah
     )
 
+    // ====================================================================
+    // LOGIN HANDLER
     private fun isUserLoggedIn(): Boolean {
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
         return !token.isNullOrEmpty()
+    }
+
+    // CEK APAKAH ID PML ADA
+    private fun isUserPML(): Boolean {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
+        val userJson = prefs.getString(LoginActivity.PREF_USER, null)
+        if (userJson != null) {
+            val user = Gson().fromJson(userJson, UserData::class.java)
+            return user.id_pml != null  // Jika id_pml tidak null → user adalah PML
+        }
+        return false
     }
 
     private fun showLoggedInUserName() {
@@ -157,6 +180,8 @@ class Dasboard : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    // ====================================================================
 
     private fun isOnline(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
