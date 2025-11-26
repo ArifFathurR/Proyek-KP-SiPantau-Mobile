@@ -2,6 +2,8 @@ package com.example.sipantau.api
 import retrofit2.Call
 import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
+import com.example.sipantau.model.ApproveData
+import com.example.sipantau.model.ApproveResponse
 import com.example.sipantau.model.DesaResponse
 import com.example.sipantau.model.Feedback
 import com.example.sipantau.model.FeedbackCreateResponse
@@ -136,7 +138,12 @@ interface ApiService {
         @Header("Authorization")token: String,
     ): Call <TotalKegPMlResponse>
 
-
+    @POST("pcl/approve/{id_pcl}")
+    fun approvePcl(
+        @Header("Authorization") token: String,
+        @Path("id_pcl") idPcl: Int,
+        @Body body: Map<String, String>  // Hanya berisi status_approval
+    ): Call<ApproveResponse>
 
 }
 
