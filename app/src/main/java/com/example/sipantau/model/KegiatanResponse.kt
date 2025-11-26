@@ -22,3 +22,14 @@ data class Kegiatan(
     val keterangan_wilayah: String = "",
     val status_kegiatan: String = "tidak aktif"    // aktif / tidak aktif
 )
+
+data class TotalKegPClResponse(
+    val status: String,
+    val total_kegiatan_pcl: Int
+)
+
+data class TotalKegPMlResponse(
+    val status: String,
+    val total_kegiatan_pml: Int
+)
+

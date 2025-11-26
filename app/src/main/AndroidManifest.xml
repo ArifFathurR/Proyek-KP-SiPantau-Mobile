@@ -42,6 +42,8 @@
         <activity android:name=".KinerjaHarianDetail"/>
         <activity android:name=".auth.Role"/>
         <activity android:name=".DashboardPML"/>
+        <activity android:name=".PantauAktivitasPML"/>
+        <activity android:name=".ApprovalLaporanPCL"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

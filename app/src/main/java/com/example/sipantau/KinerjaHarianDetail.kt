@@ -122,8 +122,13 @@ class KinerjaHarianDetail : AppCompatActivity() {
                     binding.swipeRefresh.isRefreshing = false
 
                     if (response.isSuccessful && (response.body()?.status == "success" || response.body()?.status == "ok")) {
-
                         val serverList = response.body()!!.data
+
+                        if (serverList.isNullOrEmpty()) {
+                            Toast.makeText(this@KinerjaHarianDetail, "Data laporan masih kosong", Toast.LENGTH_SHORT).show()
+                            binding.recylerView.adapter = null
+                            return
+                        }
 
                         // ==== KONVERSI KE DisplayLaporan ====
                         val displayList = serverList.map { s ->
@@ -204,6 +209,12 @@ class KinerjaHarianDetail : AppCompatActivity() {
 
                     if (response.isSuccessful && (response.body()?.status == "success" || response.body()?.status == "ok")) {
                         val data = response.body()!!.data
+
+                        if (data.isNullOrEmpty()) {
+                            Toast.makeText(this@KinerjaHarianDetail, "Data progress masih kosong", Toast.LENGTH_SHORT).show()
+                            binding.recylerView.adapter = null
+                            return
+                        }
 
                         // Berikan lambda onItemClick yang memanggil API hapus dan refresh
                         progressAdapter = ProgresAdapter(data) { progres ->

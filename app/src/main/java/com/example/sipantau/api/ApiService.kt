@@ -11,7 +11,10 @@ import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.KurvaResponse
 import com.example.sipantau.model.PantauProgresCreateResponse
 import com.example.sipantau.model.PantauProgresListResponse
+import com.example.sipantau.model.PclResponse
 import com.example.sipantau.model.PelaporanResponse
+import com.example.sipantau.model.TotalKegPClResponse
+import com.example.sipantau.model.TotalKegPMlResponse
 import com.example.sipantau.model.UserData
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -116,6 +119,22 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("id_pcl") idPcl: Int
     ): Call<KurvaResponse>
+
+    @GET("pcl/{id_pml}")
+    fun getPcl(
+        @Header("Authorization") token: String,
+        @Path("id_pml") idPml: Int
+    ): Call<PclResponse>
+
+    @GET("total-kegiatan-pcl")
+    fun getTotalKegPcl(
+        @Header("Authorization")token: String,
+    ): Call <TotalKegPClResponse>
+
+    @GET("total-kegiatan-pml")
+    fun getTotalKegPml(
+        @Header("Authorization")token: String,
+    ): Call <TotalKegPMlResponse>
 
 
 

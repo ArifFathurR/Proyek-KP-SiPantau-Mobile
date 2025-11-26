@@ -11,12 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
+import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.auth.Role
 import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
+import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.UserData
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -97,6 +99,8 @@ class Dasboard : AppCompatActivity() {
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
+        loadTotalKegiatanPcl()
     }
 
     // ====================================================================
@@ -189,4 +193,31 @@ class Dasboard : AppCompatActivity() {
         val capabilities = cm.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
+
+    private fun loadTotalKegiatanPcl() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
+        val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
+
+        if (token.isNullOrEmpty()) return
+
+        ApiClient.instance.getTotalKegPcl("Bearer $token").enqueue(object : retrofit2.Callback<TotalKegPClResponse> {
+            override fun onResponse(
+                call: retrofit2.Call<TotalKegPClResponse>,
+                response: retrofit2.Response<TotalKegPClResponse>
+            ) {
+                if (response.isSuccessful && response.body() != null) {
+                    val total = response.body()!!.total_kegiatan_pcl
+                    // tampilkan ke TextView
+                    binding.jmlKeg.text = total.toString()
+                } else {
+                    binding.jmlKeg.text = "0"
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<TotalKegPClResponse>, t: Throwable) {
+                binding.jmlKeg.text = "0"
+            }
+        })
+    }
+
 }

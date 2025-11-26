@@ -14,6 +14,8 @@ import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.DashboardPmlBinding
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.KegiatanResponse
+import com.example.sipantau.model.TotalKegPClResponse
+import com.example.sipantau.model.TotalKegPMlResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -66,6 +68,12 @@ class DashboardPML : AppCompatActivity() {
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+
+        binding.btnPantauAktivitas.setOnClickListener {
+            startActivity(Intent(this, PantauAktivitasPML::class.java))
+        }
+
+        loadTotalKegiatanPml()
     }
 
     // ====================================================================
@@ -124,4 +132,32 @@ class DashboardPML : AppCompatActivity() {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
+
+    private fun loadTotalKegiatanPml() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
+        val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
+
+        if (token.isNullOrEmpty()) return
+
+        ApiClient.instance.getTotalKegPml("Bearer $token").enqueue(object : retrofit2.Callback<TotalKegPMlResponse> {
+            override fun onResponse(
+                call: retrofit2.Call<TotalKegPMlResponse>,
+                response: retrofit2.Response<TotalKegPMlResponse>
+            ) {
+                if (response.isSuccessful && response.body() != null) {
+                    val total = response.body()!!.total_kegiatan_pml
+                    // tampilkan ke TextView, misal binding.jmlKegPml
+                    binding.jmlKeg.text = total.toString()
+                } else {
+                    binding.jmlKeg.text = "0"
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<TotalKegPMlResponse>, t: Throwable) {
+                binding.jmlKeg.text = "0"
+            }
+        })
+    }
+
+
 }
