@@ -231,7 +231,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/blue"
                 android:padding="8dp"
-                android:text="Selfie PML + Simpan Data"/>
+                android:text="Selfie + Simpan Data"/>
 
         </LinearLayout>
 
