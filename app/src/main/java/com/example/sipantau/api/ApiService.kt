@@ -15,6 +15,7 @@ import com.example.sipantau.model.PantauProgresCreateResponse
 import com.example.sipantau.model.PantauProgresListResponse
 import com.example.sipantau.model.PclResponse
 import com.example.sipantau.model.PelaporanResponse
+import com.example.sipantau.model.ReminderResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.TotalKegPMlResponse
 import com.example.sipantau.model.UserData
@@ -144,6 +145,12 @@ interface ApiService {
         @Path("id_pcl") idPcl: Int,
         @Body body: Map<String, String>  // Hanya berisi status_approval
     ): Call<ApproveResponse>
+
+    @GET("cek/")
+    fun getReminderStatus(
+        @Header("Authorization") token: String
+    ): Call<ReminderResponse>
+
 
 }
 

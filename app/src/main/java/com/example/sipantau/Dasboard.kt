@@ -22,12 +22,17 @@ import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
+import com.example.sipantau.model.ReminderItem
+import com.example.sipantau.model.ReminderResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.UserData
 import com.example.sipantau.notifications.NotificationHelper
 import com.example.sipantau.notifications.NotificationScheduler
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class Dasboard : AppCompatActivity() {
 
@@ -36,7 +41,10 @@ class Dasboard : AppCompatActivity() {
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
 
-    private val NOTIF_PERMISSION = 101   // ← permission request code
+    private val NOTIF_PERMISSION = 101   // permission request code
+    // request codes for alarms (unique)
+    private val REQ_10_30 = 1030
+    private val REQ_16_00 = 1600
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +60,7 @@ class Dasboard : AppCompatActivity() {
         // Buat channel notifikasi
         NotificationHelper.createChannel(this)
 
-        // ✓ Cek permission notifikasi dulu
+        // ✓ Cek permission notifikasi dulu (jika sudah diberi izin -> schedule)
         checkNotifPermission()
 
         showLoggedInUserName()
@@ -113,7 +121,7 @@ class Dasboard : AppCompatActivity() {
     }
 
     // ====================================================================
-    // NOTIFIKASI
+    // NOTIFIKASI & INTEGRASI API REMINDER
 
     private fun checkNotifPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -129,43 +137,92 @@ class Dasboard : AppCompatActivity() {
                     NOTIF_PERMISSION
                 )
             } else {
-                scheduleDailyNotifications()
+                // Kalau sudah diberi izin, panggil API dan schedule sesuai hasilnya
+                fetchReminderAndSchedule()
             }
         } else {
-            scheduleDailyNotifications()
+            // Android < 13: langsung panggil API & schedule
+            fetchReminderAndSchedule()
         }
     }
 
-    private fun scheduleDailyNotifications() {
-        // Jadwal 10:30
-        NotificationScheduler.scheduleDailyNotification(
-            this,
-            18, 13,
-            "Jangan lupa melakukan pelaporan hari ini"
-        )
-
-        // Jadwal 16:00
-        NotificationScheduler.scheduleDailyNotification(
-            this,
-            16, 0,
-            "Jangan lupa melaporkan progress hari ini"
-        )
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
         if (requestCode == NOTIF_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                scheduleDailyNotifications()
+                fetchReminderAndSchedule()
             } else {
                 Toast.makeText(this, "Izin notifikasi ditolak", Toast.LENGTH_SHORT).show()
+                // jika ditolak, batalkan scheduling jika ada
+                NotificationScheduler.cancelScheduledNotification(this, REQ_10_30)
+                NotificationScheduler.cancelScheduledNotification(this, REQ_16_00)
             }
         }
+    }
+
+    /**
+     * Panggil API /cek/ lalu schedule alarm harian 10:30 & 16:00 bila perlu.
+     * Pesan notifikasi akan memuat target_harian.
+     */
+    private fun fetchReminderAndSchedule() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
+        val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
+
+        ApiClient.instance.getReminderStatus("Bearer $token")
+            .enqueue(object : Callback<ReminderResponse> {
+                override fun onResponse(call: Call<ReminderResponse>, response: Response<ReminderResponse>) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val data = response.body()!!.data
+
+                        // Tentukan apakah ada PCL yang belum transaksi / belum progress
+                        var perluTransaksi = false
+                        var perluProgress = false
+                        var targetHarian = 0
+
+                        for (item in data) {
+                            if (!item.sudah_transaksi) perluTransaksi = true
+                            if (!item.sudah_progress) perluProgress = true
+                            if (item.target_harian > targetHarian) targetHarian = item.target_harian
+                        }
+
+                        // Cancel schedule dulu agar tidak duplikasi pesan (user bisa menutup & buka lagi)
+                        NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
+                        NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
+
+                        if (perluTransaksi) {
+                            val msg = "Jangan lupa melakukan pelaporan hari ini.\nTarget harian: $targetHarian"
+                            NotificationScheduler.scheduleDailyNotification(
+                                this@Dasboard,
+                                19,
+                                3,
+                                msg,
+                                REQ_10_30
+                            )
+                        }
+
+                        if (perluProgress) {
+                            val msg = "Jangan lupa melaporkan progress hari ini.\nTarget harian: $targetHarian"
+                            NotificationScheduler.scheduleDailyNotification(
+                                this@Dasboard,
+                                16,
+                                0,
+                                msg,
+                                REQ_16_00
+                            )
+                        }
+                    } else {
+                        // jika API gagal, batalkan schedule yang ada supaya tidak kirim pesan salah
+                        NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
+                        NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
+                    }
+                }
+
+                override fun onFailure(call: Call<ReminderResponse>, t: Throwable) {
+                    // gagal network -> jangan schedule agar tidak terjadi notifikasi keliru
+                    NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
+                    NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
+                }
+            })
     }
 
     // ====================================================================
