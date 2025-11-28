@@ -1,25 +1,31 @@
 package com.example.sipantau
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
-import com.example.sipantau.auth.Role
 import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.UserData
+import com.example.sipantau.notifications.NotificationHelper
+import com.example.sipantau.notifications.NotificationScheduler
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
@@ -29,6 +35,8 @@ class Dasboard : AppCompatActivity() {
     private lateinit var kegiatanAdapter: KegiatanAdapter
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
+
+    private val NOTIF_PERMISSION = 101   // ← permission request code
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +49,11 @@ class Dasboard : AppCompatActivity() {
             return
         }
 
+        // Buat channel notifikasi
+        NotificationHelper.createChannel(this)
 
+        // ✓ Cek permission notifikasi dulu
+        checkNotifPermission()
 
         showLoggedInUserName()
 
@@ -64,7 +76,6 @@ class Dasboard : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // Load data offline-online
         binding.root.post { loadKegiatan() }
 
         // ====== BUTTON LISTENER ======
@@ -79,13 +90,11 @@ class Dasboard : AppCompatActivity() {
         }
 
         binding.btnKinerjaHarian.setOnClickListener {
-            val intent = Intent(this, KinerjaHarian::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, KinerjaHarian::class.java))
         }
 
         binding.btnFeedback.setOnClickListener {
-            val intent = Intent(this, FeedbackUser::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, FeedbackUser::class.java))
         }
 
         binding.tabAktif.setOnClickListener {
@@ -101,6 +110,62 @@ class Dasboard : AppCompatActivity() {
         }
 
         loadTotalKegiatanPcl()
+    }
+
+    // ====================================================================
+    // NOTIFIKASI
+
+    private fun checkNotifPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!granted) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    NOTIF_PERMISSION
+                )
+            } else {
+                scheduleDailyNotifications()
+            }
+        } else {
+            scheduleDailyNotifications()
+        }
+    }
+
+    private fun scheduleDailyNotifications() {
+        // Jadwal 10:30
+        NotificationScheduler.scheduleDailyNotification(
+            this,
+            18, 13,
+            "Jangan lupa melakukan pelaporan hari ini"
+        )
+
+        // Jadwal 16:00
+        NotificationScheduler.scheduleDailyNotification(
+            this,
+            16, 0,
+            "Jangan lupa melaporkan progress hari ini"
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == NOTIF_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                scheduleDailyNotifications()
+            } else {
+                Toast.makeText(this, "Izin notifikasi ditolak", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     // ====================================================================
@@ -143,21 +208,11 @@ class Dasboard : AppCompatActivity() {
 
     // ====================================================================
     // LOGIN HANDLER
+
     private fun isUserLoggedIn(): Boolean {
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
         return !token.isNullOrEmpty()
-    }
-
-    // CEK APAKAH ID PML ADA
-    private fun isUserPML(): Boolean {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
-        val userJson = prefs.getString(LoginActivity.PREF_USER, null)
-        if (userJson != null) {
-            val user = Gson().fromJson(userJson, UserData::class.java)
-            return user.id_pml != null  // Jika id_pml tidak null → user adalah PML
-        }
-        return false
     }
 
     private fun showLoggedInUserName() {
@@ -200,14 +255,14 @@ class Dasboard : AppCompatActivity() {
 
         if (token.isNullOrEmpty()) return
 
-        ApiClient.instance.getTotalKegPcl("Bearer $token").enqueue(object : retrofit2.Callback<TotalKegPClResponse> {
+        ApiClient.instance.getTotalKegPcl("Bearer $token").enqueue(object :
+            retrofit2.Callback<TotalKegPClResponse> {
             override fun onResponse(
                 call: retrofit2.Call<TotalKegPClResponse>,
                 response: retrofit2.Response<TotalKegPClResponse>
             ) {
                 if (response.isSuccessful && response.body() != null) {
                     val total = response.body()!!.total_kegiatan_pcl
-                    // tampilkan ke TextView
                     binding.jmlKeg.text = total.toString()
                 } else {
                     binding.jmlKeg.text = "0"
@@ -219,5 +274,4 @@ class Dasboard : AppCompatActivity() {
             }
         })
     }
-
 }

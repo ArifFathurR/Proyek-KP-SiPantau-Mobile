@@ -12,6 +12,7 @@ import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.DashboardPmlBinding
+import com.example.sipantau.model.Feedback
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.TotalKegPClResponse
@@ -71,6 +72,9 @@ class DashboardPML : AppCompatActivity() {
 
         binding.btnPantauAktivitas.setOnClickListener {
             startActivity(Intent(this, PantauAktivitasPML::class.java))
+        }
+        binding.btnFeedback.setOnClickListener {
+            startActivity(Intent(this, FeedbackUser::class.java))
         }
 
         loadTotalKegiatanPml()
