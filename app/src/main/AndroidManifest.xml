@@ -56,6 +56,7 @@
         <activity android:name=".DashboardPML"/>
         <activity android:name=".PantauAktivitasPML"/>
         <activity android:name=".ApprovalLaporanPCL"/>
+        <activity android:name=".Achievement"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

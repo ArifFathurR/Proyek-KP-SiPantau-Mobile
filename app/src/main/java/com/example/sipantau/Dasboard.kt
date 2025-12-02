@@ -104,17 +104,28 @@ class Dasboard : AppCompatActivity() {
         binding.btnFeedback.setOnClickListener {
             startActivity(Intent(this, FeedbackUser::class.java))
         }
+        binding.btnAchievement.setOnClickListener {
+            startActivity(Intent(this, Achievement::class.java))
+        }
 
         binding.tabAktif.setOnClickListener {
             kegiatanAdapter.updateData(listAktif)
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
+
+            if (listAktif.isEmpty()) {
+                Toast.makeText(this, "Sedang tidak ada data kegiatan aktif", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.tabTidakAktif.setOnClickListener {
             kegiatanAdapter.updateData(listTidakAktif)
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
+
+            if (listTidakAktif.isEmpty()) {
+                Toast.makeText(this, "Sedang tidak ada data kegiatan tidak aktif", Toast.LENGTH_SHORT).show()
+            }
         }
 
         loadTotalKegiatanPcl()
@@ -241,7 +252,7 @@ class Dasboard : AppCompatActivity() {
             if (data.isEmpty() && !isOnline()) {
                 Toast.makeText(
                     this@Dasboard,
-                    "⚠️ Kamu sedang offline. Data lokal kosong.",
+                    "⚠️ Kamu sedang offline",
                     Toast.LENGTH_LONG
                 ).show()
             }

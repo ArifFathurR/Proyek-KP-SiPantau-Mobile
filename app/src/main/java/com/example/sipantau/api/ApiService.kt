@@ -2,6 +2,7 @@ package com.example.sipantau.api
 import retrofit2.Call
 import retrofit2.http.*
 import com.example.sipantau.auth.LoginResponse
+import com.example.sipantau.model.AchievementResponse
 import com.example.sipantau.model.ApproveData
 import com.example.sipantau.model.ApproveResponse
 import com.example.sipantau.model.DesaResponse
@@ -150,6 +151,13 @@ interface ApiService {
     fun getReminderStatus(
         @Header("Authorization") token: String
     ): Call<ReminderResponse>
+
+    @GET("achievement/{sobat_id}")
+    fun getAchievement(
+        @Header("Authorization") token: String,
+        @Path("sobat_id") sobatId: Int
+    ): Call<AchievementResponse>
+
 
 
 }
