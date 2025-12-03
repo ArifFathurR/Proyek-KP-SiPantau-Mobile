@@ -43,7 +43,7 @@ class PelaporanAdapter(
                 // Handle variants: http://localhost/uploads/...  or http://localhost:8080/uploads/...
                 if (img.contains("localhost")) {
                     // Replace hostname only (preserve :port if present). We'll replace "localhost" -> "10.0.2.2"
-                    img = img.replace("localhost", "10.14.11.32")
+                    img = img.replace("localhost", "10.0.2.2")
                 }
 
                 // If local file path (pending), Glide can load file path directly
