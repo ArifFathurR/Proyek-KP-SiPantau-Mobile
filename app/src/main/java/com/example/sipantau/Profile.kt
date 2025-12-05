@@ -54,6 +54,8 @@ class Profile : Fragment() {
         if (userJson != null) {
             val user = Gson().fromJson(userJson, UserData::class.java)
 
+            binding.tvNama.setText((user.nama_user))
+            binding.tvEmail.setText(user.email)
             binding.edtNama.setText(user.nama_user)
             binding.edtEmail.setText(user.email)
             binding.edtNomorHp.setText(user.hp)

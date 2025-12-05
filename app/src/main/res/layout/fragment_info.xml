@@ -216,7 +216,7 @@
             android:id="@+id/tvCopyright"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="© 2024 SiPantau. All rights reserved."
+            android:text="© 2025 SiPantau - BPS Provinsi Riau. All rights reserved."
             android:textSize="12sp"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="20dp"
