@@ -9,10 +9,13 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
@@ -22,7 +25,6 @@ import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
-import com.example.sipantau.model.ReminderItem
 import com.example.sipantau.model.ReminderResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.UserData
@@ -41,94 +43,210 @@ class Dasboard : AppCompatActivity() {
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
 
-    private val NOTIF_PERMISSION = 101   // permission request code
-    // request codes for alarms (unique)
+    private val NOTIF_PERMISSION = 101
     private val REQ_10_30 = 1030
     private val REQ_16_00 = 1600
 
+    companion object {
+        private const val TAG = "Dasboard"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DashboardBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
-        // ====== CEK LOGIN ======
-        if (!isUserLoggedIn()) {
-            navigateToLogin()
-            return
-        }
+        try {
+            binding = DashboardBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        // Buat channel notifikasi
-        NotificationHelper.createChannel(this)
+            Log.d(TAG, "Dashboard onCreate started")
 
-        // ✓ Cek permission notifikasi dulu (jika sudah diberi izin -> schedule)
-        checkNotifPermission()
-
-        showLoggedInUserName()
-
-        // ====== SETUP ADAPTER ======
-        kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
-            val idPcl = kegiatan.id_pcl
-            val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
-            if (idPcl != null) {
-                val intent = Intent(this, PantauAktivitas::class.java)
-                intent.putExtra("id_pcl", idPcl)
-                intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()
+            // ====== CEK LOGIN ======
+            if (!isUserLoggedIn()) {
+                navigateToLogin()
+                return
             }
-        }
 
-        binding.rvKegiatan.apply {
-            layoutManager = LinearLayoutManager(this@Dasboard)
-            adapter = kegiatanAdapter
-        }
+            // Buat channel notifikasi
+            NotificationHelper.createChannel(this)
 
-        binding.root.post { loadKegiatan() }
+            // ✓ Cek permission notifikasi dulu
+            checkNotifPermission()
 
-        // ====== BUTTON LISTENER ======
-        binding.gambarProfil.setOnClickListener { logoutUser() }
+            showLoggedInUserName()
 
-        binding.btnPantauAktivitas.setOnClickListener {
-            startActivity(Intent(this, KegiatanSaya::class.java))
-        }
-
-        binding.btnPantauProgress.setOnClickListener {
-            startActivity(Intent(this, ProgresKegiatanSaya::class.java))
-        }
-
-        binding.btnKinerjaHarian.setOnClickListener {
-            startActivity(Intent(this, KinerjaHarian::class.java))
-        }
-
-        binding.btnFeedback.setOnClickListener {
-            startActivity(Intent(this, FeedbackUser::class.java))
-        }
-        binding.btnAchievement.setOnClickListener {
-            startActivity(Intent(this, Achievement::class.java))
-        }
-
-        binding.tabAktif.setOnClickListener {
-            kegiatanAdapter.updateData(listAktif)
-            binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
-            binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
-
-            if (listAktif.isEmpty()) {
-                Toast.makeText(this, "Sedang tidak ada data kegiatan aktif", Toast.LENGTH_SHORT).show()
+            // ====== SETUP ADAPTER ======
+            kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
+                val idPcl = kegiatan.id_pcl
+                val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
+                if (idPcl != null) {
+                    val intent = Intent(this, PantauAktivitas::class.java)
+                    intent.putExtra("id_pcl", idPcl)
+                    intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
 
-        binding.tabTidakAktif.setOnClickListener {
-            kegiatanAdapter.updateData(listTidakAktif)
-            binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
-            binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
-
-            if (listTidakAktif.isEmpty()) {
-                Toast.makeText(this, "Sedang tidak ada data kegiatan tidak aktif", Toast.LENGTH_SHORT).show()
+            binding.rvKegiatan.apply {
+                layoutManager = LinearLayoutManager(this@Dasboard)
+                adapter = kegiatanAdapter
             }
-        }
 
-        loadTotalKegiatanPcl()
+            binding.root.post { loadKegiatan() }
+
+            // ====== BUTTON LISTENER ======
+            binding.gambarProfil.setOnClickListener {
+                Log.d(TAG, "Profile picture clicked")
+                binding.bottomNavigationView.selectedItemId = R.id.nav_profile
+            }
+
+            binding.btnPantauAktivitas.setOnClickListener {
+                startActivity(Intent(this, KegiatanSaya::class.java))
+            }
+
+            binding.btnPantauProgress.setOnClickListener {
+                startActivity(Intent(this, ProgresKegiatanSaya::class.java))
+            }
+
+            binding.btnKinerjaHarian.setOnClickListener {
+                startActivity(Intent(this, KinerjaHarian::class.java))
+            }
+
+            binding.btnFeedback.setOnClickListener {
+                startActivity(Intent(this, FeedbackUser::class.java))
+            }
+
+            binding.btnAchievement.setOnClickListener {
+                startActivity(Intent(this, Achievement::class.java))
+            }
+
+            binding.tabAktif.setOnClickListener {
+                kegiatanAdapter.updateData(listAktif)
+                binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
+                binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
+
+                if (listAktif.isEmpty()) {
+                    Toast.makeText(this, "Sedang tidak ada data kegiatan aktif", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            binding.tabTidakAktif.setOnClickListener {
+                kegiatanAdapter.updateData(listTidakAktif)
+                binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
+                binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
+
+                if (listTidakAktif.isEmpty()) {
+                    Toast.makeText(this, "Sedang tidak ada data kegiatan tidak aktif", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            loadTotalKegiatanPcl()
+
+            // ====== SETUP BOTTOM NAVIGATION ======
+            setupBottomNavigation()
+
+            Log.d(TAG, "Dashboard onCreate completed successfully")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreate: ${e.message}", e)
+            e.printStackTrace()
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // ====================================================================
+    // BOTTOM NAVIGATION HANDLER
+
+    private fun setupBottomNavigation() {
+        try {
+            binding.bottomNavigationView.setOnItemSelectedListener { item ->
+                try {
+                    when (item.itemId) {
+                        R.id.nav_home -> {
+                            Log.d(TAG, "Home selected")
+                            showDashboardContent()
+                            true
+                        }
+                        R.id.nav_profile -> {
+                            Log.d(TAG, "Profile selected")
+                            loadFragment(Profile())
+                            hideDashboardContent()
+                            true
+                        }
+                        R.id.nav_info -> {
+                            Log.d(TAG, "Info selected")
+                            loadFragment(Info())
+                            hideDashboardContent()
+                            true
+                        }
+                        else -> {
+                            Log.w(TAG, "Unknown menu item selected")
+                            false
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error in navigation: ${e.message}", e)
+                    Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    false
+                }
+            }
+
+            // Set home as default selected
+            binding.bottomNavigationView.selectedItemId = R.id.nav_home
+            Log.d(TAG, "Bottom navigation setup completed")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up bottom navigation: ${e.message}", e)
+            Toast.makeText(this, "Error setting up navigation", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        try {
+            Log.d(TAG, "Loading fragment: ${fragment.javaClass.simpleName}")
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commitAllowingStateLoss()
+
+            Log.d(TAG, "Fragment loaded successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading fragment: ${e.message}", e)
+            Toast.makeText(this, "Error loading page: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun hideDashboardContent() {
+        try {
+            Log.d(TAG, "Hiding dashboard content")
+            binding.scrollView.visibility = View.GONE
+            binding.fragmentContainer.visibility = View.VISIBLE
+        } catch (e: Exception) {
+            Log.e(TAG, "Error hiding dashboard: ${e.message}", e)
+        }
+    }
+
+    private fun showDashboardContent() {
+        try {
+            Log.d(TAG, "Showing dashboard content")
+
+            // Remove any fragments
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+            if (currentFragment != null) {
+                Log.d(TAG, "Removing current fragment")
+                supportFragmentManager.beginTransaction()
+                    .remove(currentFragment)
+                    .commitAllowingStateLoss()
+            }
+
+            binding.scrollView.visibility = View.VISIBLE
+            binding.fragmentContainer.visibility = View.GONE
+            loadKegiatan()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing dashboard: ${e.message}", e)
+        }
     }
 
     // ====================================================================
@@ -148,11 +266,9 @@ class Dasboard : AppCompatActivity() {
                     NOTIF_PERMISSION
                 )
             } else {
-                // Kalau sudah diberi izin, panggil API dan schedule sesuai hasilnya
                 fetchReminderAndSchedule()
             }
         } else {
-            // Android < 13: langsung panggil API & schedule
             fetchReminderAndSchedule()
         }
     }
@@ -164,17 +280,12 @@ class Dasboard : AppCompatActivity() {
                 fetchReminderAndSchedule()
             } else {
                 Toast.makeText(this, "Izin notifikasi ditolak", Toast.LENGTH_SHORT).show()
-                // jika ditolak, batalkan scheduling jika ada
                 NotificationScheduler.cancelScheduledNotification(this, REQ_10_30)
                 NotificationScheduler.cancelScheduledNotification(this, REQ_16_00)
             }
         }
     }
 
-    /**
-     * Panggil API /cek/ lalu schedule alarm harian 10:30 & 16:00 bila perlu.
-     * Pesan notifikasi akan memuat target_harian.
-     */
     private fun fetchReminderAndSchedule() {
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
@@ -185,7 +296,6 @@ class Dasboard : AppCompatActivity() {
                     if (response.isSuccessful && response.body() != null) {
                         val data = response.body()!!.data
 
-                        // Tentukan apakah ada PCL yang belum transaksi / belum progress
                         var perluTransaksi = false
                         var perluProgress = false
                         var targetHarian = 0
@@ -196,7 +306,6 @@ class Dasboard : AppCompatActivity() {
                             if (item.target_harian > targetHarian) targetHarian = item.target_harian
                         }
 
-                        // Cancel schedule dulu agar tidak duplikasi pesan (user bisa menutup & buka lagi)
                         NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
                         NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
 
@@ -222,14 +331,12 @@ class Dasboard : AppCompatActivity() {
                             )
                         }
                     } else {
-                        // jika API gagal, batalkan schedule yang ada supaya tidak kirim pesan salah
                         NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
                         NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
                     }
                 }
 
                 override fun onFailure(call: Call<ReminderResponse>, t: Throwable) {
-                    // gagal network -> jangan schedule agar tidak terjadi notifikasi keliru
                     NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_10_30)
                     NotificationScheduler.cancelScheduledNotification(this@Dasboard, REQ_16_00)
                 }
@@ -242,19 +349,23 @@ class Dasboard : AppCompatActivity() {
         val repo = KegiatanRepository(this)
 
         lifecycleScope.launch {
-            val data: List<KegiatanEntity> = repo.getKegiatan()
+            try {
+                val data: List<KegiatanEntity> = repo.getKegiatan()
 
-            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
-            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
+                listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
+                listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
 
-            kegiatanAdapter.updateData(listAktif)
+                kegiatanAdapter.updateData(listAktif)
 
-            if (data.isEmpty() && !isOnline()) {
-                Toast.makeText(
-                    this@Dasboard,
-                    "⚠️ Kamu sedang offline",
-                    Toast.LENGTH_LONG
-                ).show()
+                if (data.isEmpty() && !isOnline()) {
+                    Toast.makeText(
+                        this@Dasboard,
+                        "⚠️ Kamu sedang offline",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading kegiatan: ${e.message}", e)
             }
         }
     }
@@ -292,15 +403,6 @@ class Dasboard : AppCompatActivity() {
         } else "Halo, Pengguna"
     }
 
-    private fun logoutUser() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .remove(LoginActivity.PREF_TOKEN)
-            .remove(LoginActivity.PREF_USER)
-            .apply()
-        navigateToLogin()
-    }
-
     private fun navigateToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -323,23 +425,39 @@ class Dasboard : AppCompatActivity() {
 
         if (token.isNullOrEmpty()) return
 
-        ApiClient.instance.getTotalKegPcl("Bearer $token").enqueue(object :
-            retrofit2.Callback<TotalKegPClResponse> {
-            override fun onResponse(
-                call: retrofit2.Call<TotalKegPClResponse>,
-                response: retrofit2.Response<TotalKegPClResponse>
-            ) {
-                if (response.isSuccessful && response.body() != null) {
-                    val total = response.body()!!.total_kegiatan_pcl
-                    binding.jmlKeg.text = total.toString()
-                } else {
-                    binding.jmlKeg.text = "0"
-                }
-            }
+        ApiClient.instance.getTotalKegPcl("Bearer $token")
+            .enqueue(object : retrofit2.Callback<TotalKegPClResponse> {
 
-            override fun onFailure(call: retrofit2.Call<TotalKegPClResponse>, t: Throwable) {
-                binding.jmlKeg.text = "0"
-            }
-        })
+                override fun onResponse(
+                    call: retrofit2.Call<TotalKegPClResponse>,
+                    response: retrofit2.Response<TotalKegPClResponse>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+
+                        val res = response.body()!!
+
+                        // total kegiatan pcl
+                        binding.jmlKeg.text = res.total_kegiatan_pcl.toString()
+
+                        // total kegiatan aktif
+                        binding.ratingKepatuhan.text = res.total_kegiatan_pcl_aktif.toString()
+
+                        // 🔥 CETAK TOTAL ACHIEVEMENT (contoh: 5/18)
+                        binding.rating.text = "${res.total_achievement}/18"
+
+                    } else {
+                        binding.jmlKeg.text = "0"
+                        binding.ratingKepatuhan.text = "0"
+                        binding.rating.text = "0/18"
+                    }
+                }
+
+                override fun onFailure(call: retrofit2.Call<TotalKegPClResponse>, t: Throwable) {
+                    binding.jmlKeg.text = "0"
+                    binding.ratingKepatuhan.text = "0"
+                    binding.rating.text = "0/18"
+                }
+            })
     }
+
 }

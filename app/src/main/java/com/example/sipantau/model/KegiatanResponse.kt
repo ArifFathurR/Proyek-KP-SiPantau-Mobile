@@ -25,7 +25,9 @@ data class Kegiatan(
 
 data class TotalKegPClResponse(
     val status: String,
-    val total_kegiatan_pcl: Int
+    val total_kegiatan_pcl: Int,
+    val total_kegiatan_pcl_aktif: Int,
+    val total_achievement: Int
 )
 
 data class TotalKegPMlResponse(

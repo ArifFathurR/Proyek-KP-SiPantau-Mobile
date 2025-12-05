@@ -38,8 +38,6 @@
             android:name=".notifications.NotificationReceiver"
             android:exported="false" />
 
-
-
         <activity android:name=".Dasboard"/>
         <activity android:name=".WallcomeActivity"/>
         <activity android:name=".auth.LoginActivity"/>

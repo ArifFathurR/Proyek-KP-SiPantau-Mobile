@@ -30,6 +30,8 @@ class ProgresKegiatanSaya : AppCompatActivity() {
         binding = KegiatanSayaBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.judul.text = "Pantau Progress"
+
         // 🔹 Setup RecyclerView
         kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
             val idPcl = kegiatan.id_pcl
@@ -62,6 +64,9 @@ class ProgresKegiatanSaya : AppCompatActivity() {
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
         // 🔹 Load data (offline/online)
         binding.root.post { loadKegiatan() }
     }

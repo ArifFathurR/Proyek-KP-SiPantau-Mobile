@@ -62,6 +62,10 @@ class KinerjaHarian : AppCompatActivity() {
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
+
         // 🔹 Load data (offline/online)
         binding.root.post { loadKegiatan() }
     }

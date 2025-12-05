@@ -61,6 +61,9 @@ class KegiatanSaya : AppCompatActivity() {
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
 
         // Load data
         binding.root.post { loadKegiatan() }

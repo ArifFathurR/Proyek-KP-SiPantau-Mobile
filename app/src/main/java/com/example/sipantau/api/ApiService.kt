@@ -19,6 +19,7 @@ import com.example.sipantau.model.PelaporanResponse
 import com.example.sipantau.model.ReminderResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.TotalKegPMlResponse
+import com.example.sipantau.model.UpdateProfileRequest
 import com.example.sipantau.model.UserData
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -158,7 +159,14 @@ interface ApiService {
         @Path("sobat_id") sobatId: Int
     ): Call<AchievementResponse>
 
-
+    @FormUrlEncoded
+    @POST("auth/update-profile")
+    fun editProfile(
+        @Header("Authorization") token: String,
+        @Field("nama_user") nama: String,
+        @Field("hp") hp: String,
+        @Field("password") password: String?
+    ): Call<Void>
 
 }
 
