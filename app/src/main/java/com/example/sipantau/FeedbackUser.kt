@@ -31,6 +31,10 @@ class FeedbackUser : AppCompatActivity() {
         binding = ActivityFeedbackTestimoniBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnKembali.setOnClickListener{
+            finish()
+        }
+
         // ✅ Ambil token dari SharedPreferences
         val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(LoginActivity.PREF_TOKEN, null)

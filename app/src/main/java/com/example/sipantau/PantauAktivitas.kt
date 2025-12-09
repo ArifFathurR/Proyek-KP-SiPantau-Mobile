@@ -58,6 +58,10 @@ class PantauAktivitas : AppCompatActivity() {
             lifecycleScope.launch { loadData() }
         }
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
+
         setupTabs()
         setActiveTab("pending")
 

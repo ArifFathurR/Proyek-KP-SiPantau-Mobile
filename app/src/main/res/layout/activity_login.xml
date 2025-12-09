@@ -12,7 +12,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:text="SiPantau Mitra"
+        android:text="SiPantau"
         android:textColor="@color/white"
         android:textSize="38sp"
         android:textStyle="bold"

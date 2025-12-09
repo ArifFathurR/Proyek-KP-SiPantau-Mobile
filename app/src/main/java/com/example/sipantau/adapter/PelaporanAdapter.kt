@@ -28,7 +28,7 @@ class PelaporanAdapter(
         with(holder.b) {
 
             // Text fields
-            judul.text = item.nama_kegiatan ?: "Laporan"
+            judul.text = item.nama_kegiatan_detail_proses ?: "Laporan"
             tanggal.text = item.created_at
             textView.text = item.resume
             kegiatan.text = item.nama_kegiatan_detail_proses ?: ""

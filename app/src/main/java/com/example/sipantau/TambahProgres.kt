@@ -29,6 +29,10 @@ class TambahProgres : AppCompatActivity() {
         binding = TambahProgresBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
+
         idPcl = intent.getIntExtra("id_pcl", 0)
         repository = PantauProgresRepository(this)
 

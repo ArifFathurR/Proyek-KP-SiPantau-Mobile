@@ -88,6 +88,10 @@ class TambahLaporan : AppCompatActivity() {
         loadKecamatan()
         wilayahRepo = WilayahRepository(this)
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+        }
+
 
         binding.btnKoordinat.setOnClickListener { getCurrentLocation() }
         binding.btnSimpan.setOnClickListener { onSaveClicked() }
