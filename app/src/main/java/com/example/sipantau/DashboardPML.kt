@@ -286,7 +286,11 @@ class DashboardPML : AppCompatActivity() {
                 ) {
                     if (response.isSuccessful && response.body() != null) {
                         val total = response.body()!!.total_kegiatan_pml
+                        val total_pcl = response.body()!!.total_pcl
+                        val total_keg_aktif = response.body()!!.total_kegiatan_pml_aktif
                         binding.jmlKeg.text = total.toString()
+                        binding.ratingKepatuhan.text = total_pcl.toString()
+                        binding.rating.text = total_keg_aktif.toString()
                     } else {
                         binding.jmlKeg.text = "0"
                     }
