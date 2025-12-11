@@ -313,8 +313,8 @@ class Dasboard : AppCompatActivity() {
                             val msg = "Jangan lupa melakukan pelaporan hari ini.\nTarget harian: $targetHarian"
                             NotificationScheduler.scheduleDailyNotification(
                                 this@Dasboard,
-                                19,
-                                3,
+                                10,
+                                0,
                                 msg,
                                 REQ_10_30
                             )
