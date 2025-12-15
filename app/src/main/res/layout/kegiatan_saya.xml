@@ -48,7 +48,7 @@
         android:layout_margin="20dp"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top">
+        app:layout_constraintTop_toBottomOf="@+id/tx1">
 
         <!-- Tab Aktif -->
         <androidx.cardview.widget.CardView
@@ -94,6 +94,19 @@
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tx1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="25dp"
+        android:textStyle="bold"
+        android:textSize="15dp"
+        android:text="Pilih Kegiatan Survei Aktif Terlebih Dahulu"
+        app:layout_constraintTop_toBottomOf="@+id/top"
+        app:layout_constraintStart_toStartOf="parent"
+        />
 
 
     <!-- RecyclerView untuk List Kegiatan -->

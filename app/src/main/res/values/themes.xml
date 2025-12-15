@@ -1,8 +1,36 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.SiPantau" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- Status Bar Color (bagian atas: baterai, jam, dll) -->
+        <item name="android:statusBarColor">@color/blue</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+
+        <!-- Navigation Bar Color (bagian bawah android) -->
+        <item name="android:navigationBarColor">@color/white</item>
+
+        <!-- Primary Colors - Warna utama aplikasi -->
+        <item name="colorPrimary">@color/blue</item>
+        <item name="colorPrimaryVariant">@color/blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary Colors - Hilangkan warna ungu default -->
+        <item name="colorSecondary">@color/blue</item>
+        <item name="colorSecondaryVariant">@color/blue</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Tertiary Colors - Material 3 -->
+        <item name="colorTertiary">@color/blue</item>
+        <item name="colorOnTertiary">@color/white</item>
+
+        <!-- Background Colors -->
+        <item name="android:colorBackground">@color/white</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+
+        <!-- Accent Color -->
+        <item name="colorAccent">@color/blue</item>
+
     </style>
 
     <style name="Theme.SiPantau" parent="Base.Theme.SiPantau" />

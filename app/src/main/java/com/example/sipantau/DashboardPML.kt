@@ -55,12 +55,34 @@ class DashboardPML : AppCompatActivity() {
             showLoggedInUserName()
 
             // ====== SETUP ADAPTER ======
-            kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
-                val intent = Intent(this, PantauAktivitasPML::class.java)
-                intent.putExtra("id_kegiatan_detail_proses", kegiatan.id_kegiatan_detail_proses)
-                intent.putExtra("id_pml", kegiatan.id_pml)
-                startActivity(intent)
-            }
+            kegiatanAdapter = KegiatanAdapter(
+                emptyList(),
+                onItemClick = { kegiatan ->
+                    // Click pada card - navigasi ke PantauAktivitasPML
+                    val intent = Intent(this, PantauAktivitasPML::class.java)
+                    intent.putExtra("id_kegiatan_detail_proses", kegiatan.id_kegiatan_detail_proses)
+                    intent.putExtra("id_pml", kegiatan.id_pml)
+                    startActivity(intent)
+                },
+                onDetailClick = { kegiatan ->
+                    // Click pada button detail - navigasi ke DetailKegiatan
+                    val intent = Intent(this, DetailKegiatan::class.java).apply {
+                        putExtra("nama_kegiatan", kegiatan.nama_kegiatan)
+                        putExtra("nama_kegiatan_detail_proses", kegiatan.nama_kegiatan_detail_proses)
+                        putExtra("tanggal_mulai", kegiatan.tanggal_mulai)
+                        putExtra("tanggal_selesai", kegiatan.tanggal_selesai)
+                        putExtra("keterangan_wilayah", kegiatan.keterangan_wilayah)
+                        putExtra("nama_kabupaten", kegiatan.nama_kabupaten)
+                        putExtra("status_kegiatan", kegiatan.status_kegiatan)
+                        putExtra("status_approval", kegiatan.status_approval)
+                        putExtra("target", kegiatan.target ?: 0)
+                        putExtra("id_pcl", kegiatan.id_pcl ?: 0)
+                        putExtra("id_pml", kegiatan.id_pml ?: 0)
+                        putExtra("id_kegiatan_detail_proses", kegiatan.id_kegiatan_detail_proses ?: 0)
+                    }
+                    startActivity(intent)
+                }
+            )
 
             binding.rvKegiatan.apply {
                 layoutManager = LinearLayoutManager(this@DashboardPML)

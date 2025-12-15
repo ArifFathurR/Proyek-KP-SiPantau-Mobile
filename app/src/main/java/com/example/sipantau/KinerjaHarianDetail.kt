@@ -42,6 +42,7 @@ class KinerjaHarianDetail : AppCompatActivity() {
         binding = ActivityKinerjaHarianDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         // Ambil ID PCL
         idPcl = intent.getIntExtra("id_pcl", 0)
         if (idPcl == 0) {

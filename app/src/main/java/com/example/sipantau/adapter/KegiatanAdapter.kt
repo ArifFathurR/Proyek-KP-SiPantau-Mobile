@@ -8,7 +8,9 @@ import com.example.sipantau.model.Kegiatan
 
 class KegiatanAdapter(
     private var listKegiatan: List<Kegiatan>,
-    private val onItemClick: (Kegiatan) -> Unit
+    private val onItemClick: (Kegiatan) -> Unit,
+    private val onDetailClick: (Kegiatan) -> Unit
+
 ) : RecyclerView.Adapter<KegiatanAdapter.KegiatanViewHolder>() {
 
     inner class KegiatanViewHolder(val binding: ItemListKegiatanBinding) :
@@ -31,6 +33,7 @@ class KegiatanAdapter(
             textView.text = item.keterangan_wilayah
 
             root.setOnClickListener { onItemClick(item) }
+            btnDetail.setOnClickListener { onDetailClick(item) }
         }
     }
 

@@ -48,8 +48,7 @@
         android:paddingVertical="30dp"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="20dp"
-        android:layout_marginBottom="40dp"
-        >
+        android:layout_marginBottom="40dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,19 +56,19 @@
             android:orientation="vertical">
 
             <!-- Dropdown Pilih Kegiatan -->
-<!--            <com.google.android.material.textfield.TextInputLayout-->
-<!--                android:id="@+id/pilih_kegiatan"-->
-<!--                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginTop="25dp"-->
-<!--                android:hint="&#45;&#45; Pilih Kegiatan &#45;&#45;">-->
+            <!--            <com.google.android.material.textfield.TextInputLayout-->
+            <!--                android:id="@+id/pilih_kegiatan"-->
+            <!--                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginTop="25dp"-->
+            <!--                android:hint="&#45;&#45; Pilih Kegiatan &#45;&#45;">-->
 
-<!--                <com.google.android.material.textfield.MaterialAutoCompleteTextView-->
-<!--                    android:id="@+id/spinnerKegiatan"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="wrap_content"/>-->
-<!--            </com.google.android.material.textfield.TextInputLayout>-->
+            <!--                <com.google.android.material.textfield.MaterialAutoCompleteTextView-->
+            <!--                    android:id="@+id/spinnerKegiatan"-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="wrap_content"/>-->
+            <!--            </com.google.android.material.textfield.TextInputLayout>-->
 
             <!-- Tanggal Kegiatan -->
             <com.google.android.material.textfield.TextInputLayout
@@ -78,8 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="Tanggal Waktu"
-                android:visibility="gone"
-                >
+                android:visibility="gone">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_tglKegiatan"
@@ -144,7 +142,6 @@
                 android:text="Ambil Koordinat"
                 android:layout_marginTop="16dp"
                 android:padding="10dp"
-
                 android:backgroundTint="@color/blue"/>
 
             <LinearLayout
@@ -159,8 +156,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginTop="4dp"
-                    android:hint="Longitude"
- >
+                    android:hint="Longitude">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtLongitude"
@@ -223,19 +219,32 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <Button
-                android:id="@+id/btnSimpan"
-                android:layout_marginVertical="16dp"
-                android:layout_gravity="center_horizontal"
+            <!-- Container untuk Button dan ProgressBar -->
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/blue"
-                android:padding="8dp"
-                android:text="Selfie + Simpan Data"/>
+                android:layout_marginVertical="16dp"
+                android:layout_gravity="center_horizontal">
+
+                <Button
+                    android:id="@+id/btnSimpan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/blue"
+                    android:padding="8dp"
+                    android:text="Selfie + Simpan Data"/>
+
+                <ProgressBar
+                    android:id="@+id/progressBarSimpan"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:visibility="gone"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/white"
+                    android:layout_gravity="center"/>
+            </FrameLayout>
 
         </LinearLayout>
-
-
 
     </ScrollView>
 

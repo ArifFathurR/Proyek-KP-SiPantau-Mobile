@@ -2,6 +2,7 @@ package com.example.sipantau.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sipantau.Dasboard
@@ -62,10 +63,16 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun doLogin(email: String, password: String) {
+        // Tampilkan loading
+        setLoadingState(true)
+
         ApiClient.instance.login(email, password)
             .enqueue(object : Callback<LoginResponse> {
 
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                    // Sembunyikan loading
+                    setLoadingState(false)
+
                     if (response.isSuccessful) {
                         val body = response.body()
 
@@ -134,8 +141,22 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                    // leazy loading
+                    setLoadingState(false)
                     Toast.makeText(this@LoginActivity, "Gagal koneksi: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+
+    private fun setLoadingState(isLoading: Boolean) {
+        binding.btnLogin.isEnabled = !isLoading
+        binding.btnLogin.text = if (isLoading) "" else "Log In"
+
+        // Tampilkan/sembunyikan ProgressBar
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+
+        // Disable input fields saat loading
+        binding.edtIdPengguna.isEnabled = !isLoading
+        binding.edtPassword.isEnabled = !isLoading
     }
 }

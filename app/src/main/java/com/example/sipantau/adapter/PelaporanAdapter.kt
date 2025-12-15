@@ -1,10 +1,12 @@
 package com.example.sipantau.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.sipantau.DetailLaporanActivity
 import com.example.sipantau.R
 import com.example.sipantau.databinding.ItemListLaporanBinding
 import com.example.sipantau.model.DisplayLaporan
@@ -40,10 +42,8 @@ class PelaporanAdapter(
                 var img = rawImg.trim()
 
                 // Replace localhost to emulator host. Keep port if present.
-                // Handle variants: http://localhost/uploads/...  or http://localhost:8080/uploads/...
                 if (img.contains("localhost")) {
-                    // Replace hostname only (preserve :port if present). We'll replace "localhost" -> "10.0.2.2"
-                    img = img.replace("localhost", "actsnap.my.id/kp/")
+                    img = img.replace("localhost", "riau.web.bps.go.id/sipantau/")
                 }
 
                 // If local file path (pending), Glide can load file path directly
@@ -67,8 +67,39 @@ class PelaporanAdapter(
                 // disable button briefly to prevent double clicks
                 it.isEnabled = false
                 onSendClick(item)
-                // re-enable after callback returns control (Activity will refresh list and rebind)
+                // re-enable after callback returns control
                 it.isEnabled = true
+            }
+
+            // ROOT CLICK - Open Detail Activity
+            root.setOnClickListener {
+                val context = root.context
+                val intent = Intent(context, DetailLaporanActivity::class.java).apply {
+                    // Kirim semua data yang diperlukan
+                    putExtra("nama_kegiatan", item.nama_kegiatan)
+                    putExtra("nama_kegiatan_detail_proses", item.nama_kegiatan_detail_proses)
+                    putExtra("resume", item.resume)
+                    putExtra("created_at", item.created_at)
+                    putExtra("nama_kabupaten", item.nama_kabupaten)
+                    putExtra("nama_kecamatan", item.nama_kecamatan)
+                    putExtra("nama_desa", item.nama_desa)
+                    putExtra("latitude", item.latitude)
+                    putExtra("longitude", item.longitude)
+
+                    // Image handling
+                    val imageUrl = if (item.isPending) {
+                        item.localImagePath
+                    } else {
+                        var img = (item.image_url ?: item.imagepath) ?: ""
+                        if (img.contains("localhost")) {
+                            img = img.replace("localhost", "riau.web.bps.go.id/sipantau/")
+                        }
+                        img
+                    }
+                    putExtra("image_url", imageUrl)
+                    putExtra("isPending", item.isPending)
+                }
+                context.startActivity(intent)
             }
         }
     }

@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.location.Location
 import android.os.Bundle
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -383,21 +384,13 @@ class TambahLaporan : AppCompatActivity() {
             return
         }
 
-        isSubmitting = true
+        // Tampilkan loading
+        setLoadingState(true)
 
         lifecycleScope.launch {
             try {
-                // Toast progress
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@TambahLaporan, "Mengambil foto...", Toast.LENGTH_SHORT).show()
-                }
-
                 // Capture dan kompres foto
                 val compressedFile = captureAndCompressPhoto()
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@TambahLaporan, "Mengirim laporan...", Toast.LENGTH_SHORT).show()
-                }
 
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 
@@ -409,7 +402,7 @@ class TambahLaporan : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    isSubmitting = false
+                    setLoadingState(false)
                     Toast.makeText(this@TambahLaporan, "Gagal: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -446,7 +439,7 @@ class TambahLaporan : AppCompatActivity() {
             val response = call.execute()
 
             withContext(Dispatchers.Main) {
-                isSubmitting = false
+                setLoadingState(false)
                 if (response.isSuccessful) {
                     Toast.makeText(this@TambahLaporan, "✓ Laporan berhasil dikirim!", Toast.LENGTH_LONG).show()
                     finish()
@@ -457,7 +450,7 @@ class TambahLaporan : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             withContext(Dispatchers.Main) {
-                isSubmitting = false
+                setLoadingState(false)
                 savePendingLocally(imageFile?.absolutePath, resume, lat, lon, timestamp)
             }
         }
@@ -485,7 +478,7 @@ class TambahLaporan : AppCompatActivity() {
             repo.savePending(pending)
 
             withContext(Dispatchers.Main) {
-                isSubmitting = false
+                setLoadingState(false)
                 Toast.makeText(
                     this@TambahLaporan,
                     "📱 Tersimpan lokal. Akan dikirim saat online.",
@@ -532,6 +525,26 @@ class TambahLaporan : AppCompatActivity() {
             e.printStackTrace()
             false
         }
+    }
+
+    private fun setLoadingState(isLoading: Boolean) {
+        isSubmitting = isLoading
+
+        // Update button state
+        binding.btnSimpan.isEnabled = !isLoading
+        binding.btnSimpan.text = if (isLoading) "" else "Selfie + Simpan Data"
+
+        // Tampilkan/sembunyikan ProgressBar
+        binding.progressBarSimpan.visibility = if (isLoading) View.VISIBLE else View.GONE
+
+        // Disable semua input saat loading
+        binding.edtResume.isEnabled = !isLoading
+        binding.edtLatitude.isEnabled = !isLoading
+        binding.edtLongitude.isEnabled = !isLoading
+        binding.spinnerKecamatan.isEnabled = !isLoading
+        binding.spinnerDesa.isEnabled = !isLoading
+        binding.btnKoordinat.isEnabled = !isLoading
+        binding.btnKembali.isEnabled = !isLoading
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {

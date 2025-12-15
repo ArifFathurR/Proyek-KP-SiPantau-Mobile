@@ -30,19 +30,45 @@ class KinerjaHarian : AppCompatActivity() {
         binding = ActivityKinerjaHarianBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 🔹 Setup RecyclerView
-        kegiatanAdapter = KegiatanAdapter(emptyList()) { kegiatan ->
-            val idPcl = kegiatan.id_pcl
-            val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
-            if (idPcl != null) {
-                val intent = Intent(this, KinerjaHarianDetail::class.java)
-                intent.putExtra("id_pcl", idPcl)
-                intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()
-            }
+        binding.btnKembali.setOnClickListener {
+            finish()
         }
+
+        // 🔹 Setup RecyclerView dengan 2 callback
+        kegiatanAdapter = KegiatanAdapter(
+            emptyList(),
+            onItemClick = { kegiatan ->
+                // Click pada card - navigasi ke KinerjaHarianDetail
+                val idPcl = kegiatan.id_pcl
+                val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
+                if (idPcl != null) {
+                    val intent = Intent(this, KinerjaHarianDetail::class.java)
+                    intent.putExtra("id_pcl", idPcl)
+                    intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onDetailClick = { kegiatan ->
+                // Click pada button detail - navigasi ke DetailKegiatan
+                val intent = Intent(this, DetailKegiatan::class.java).apply {
+                    putExtra("nama_kegiatan", kegiatan.nama_kegiatan)
+                    putExtra("nama_kegiatan_detail_proses", kegiatan.nama_kegiatan_detail_proses)
+                    putExtra("tanggal_mulai", kegiatan.tanggal_mulai)
+                    putExtra("tanggal_selesai", kegiatan.tanggal_selesai)
+                    putExtra("keterangan_wilayah", kegiatan.keterangan_wilayah)
+                    putExtra("nama_kabupaten", kegiatan.nama_kabupaten)
+                    putExtra("status_kegiatan", kegiatan.status_kegiatan)
+                    putExtra("status_approval", kegiatan.status_approval)
+                    putExtra("target", kegiatan.target ?: 0)
+                    putExtra("id_pcl", kegiatan.id_pcl ?: 0)
+                    putExtra("id_pml", kegiatan.id_pml ?: 0)
+                    putExtra("id_kegiatan_detail_proses", kegiatan.id_kegiatan_detail_proses ?: 0)
+                }
+                startActivity(intent)
+            }
+        )
 
         binding.rvKegiatan.apply {
             layoutManager = LinearLayoutManager(this@KinerjaHarian)
@@ -60,10 +86,6 @@ class KinerjaHarian : AppCompatActivity() {
             kegiatanAdapter.updateData(listTidakAktif)
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
-        }
-
-        binding.btnKembali.setOnClickListener {
-            finish()
         }
 
         // 🔹 Load data (offline/online)

@@ -55,6 +55,9 @@
         <activity android:name=".PantauAktivitasPML"/>
         <activity android:name=".ApprovalLaporanPCL"/>
         <activity android:name=".Achievement"/>
+        <activity android:name=".DetailKegiatan"/>
+        <activity android:name=".DetailLaporanActivity"/>
+        <activity android:name=".DetailProgresActivity"/>
     </application>
     <uses-feature
         android:name="android.hardware.camera"

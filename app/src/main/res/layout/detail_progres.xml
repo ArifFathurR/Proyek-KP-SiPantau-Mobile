@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="30dp"
-            android:text="Detail Laporan Kegiatan"
+            android:text="Detail Laporan Progres"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="17sp"
@@ -39,7 +39,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-    
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="500dp"
@@ -54,20 +54,30 @@
             >
 
             <TextView
-                android:id="@+id/judul"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Judul Kegiatan"
-                android:textSize="25dp"
+                android:text="Jumlah Realisasi Hari ini"
                 android:textStyle="bold"
-                android:layout_gravity="center"
+                android:textSize="12sp"
+                android:textColor="@color/btn_color"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="10dp"
+                />
 
+            <TextView
+                android:id="@+id/jml_realisasi_harian"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:text="2"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="5dp"
                 />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                    android:text="Keterangan"
+                android:text="Catatan Realisasi"
                 android:textStyle="bold"
                 android:textSize="12sp"
                 android:textColor="@color/btn_color"
@@ -82,7 +92,6 @@
                 android:text="..............................................................................................................................................................................................................................................................................................................................................................................."
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="5dp"
-
                 />
 
             <TextView
@@ -129,10 +138,8 @@
                 android:visibility="gone"
                 />
 
-
-
         </LinearLayout>
-        
+
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
