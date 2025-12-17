@@ -37,7 +37,7 @@ class Splash : AppCompatActivity() {
 
             } else {
                 // Belum login → ke Welcome
-                startActivity(Intent(this, WallcomeActivity::class.java))
+                startActivity(Intent(this, LoginActivity::class.java))
             }
 
             finish()

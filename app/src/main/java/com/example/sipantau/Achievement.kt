@@ -20,7 +20,7 @@ class Achievement : AppCompatActivity() {
 
     private lateinit var binding: ActivityAchievementBinding
     private lateinit var token: String
-    private var sobatId: Int = 0
+    private var sobatId: Long = 0
 
     private var achievedList: List<UserAchievement> = emptyList()
     private var unachievedList: List<UserAchievement> = emptyList()
@@ -34,7 +34,7 @@ class Achievement : AppCompatActivity() {
         token = prefs.getString(LoginActivity.PREF_TOKEN, "") ?: ""
         val userJson = prefs.getString(LoginActivity.PREF_USER, null)
         val user = Gson().fromJson(userJson, UserData::class.java)
-        sobatId = user.sobat_id.toInt()
+        sobatId = user.sobat_id.toLong()
 
         binding.btnKembali.setOnClickListener { finish() }
 

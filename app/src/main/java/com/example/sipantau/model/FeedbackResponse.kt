@@ -14,7 +14,7 @@ data class FeedbackCreateResponse(
 
 data class Feedback(
     val id_feedback: Int?,
-    val sobat_id: Int?,
+    val sobat_id: Long?,
     val feedback: String,
     val rating: Int?,
     val created_at: String

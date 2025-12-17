@@ -109,7 +109,7 @@ interface ApiService {
     @POST("feedback")
     fun CreateFeedback(
         @Header("Authorization") token: String,
-        @Part("sobat_id") sobatId: Int,
+        @Part("sobat_id") sobatId: Long,
         @Part("feedback") feedback: String,
         @Part("rating") rating: Int
     ): Call<FeedbackCreateResponse>
@@ -156,7 +156,7 @@ interface ApiService {
     @GET("achievement/{sobat_id}")
     fun getAchievement(
         @Header("Authorization") token: String,
-        @Path("sobat_id") sobatId: Int
+        @Path("sobat_id") sobatId: Long
     ): Call<AchievementResponse>
 
     @FormUrlEncoded
