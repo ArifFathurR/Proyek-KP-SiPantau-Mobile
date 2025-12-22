@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -90,7 +88,8 @@ class TambahLaporan : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        loadKecamatan()
+        // Load kecamatan & desa dari local DB saja
+        loadKecamatanFromLocal()
 
         binding.btnKembali.setOnClickListener { finish() }
         binding.btnKoordinat.setOnClickListener { getCurrentLocation() }
@@ -186,20 +185,14 @@ class TambahLaporan : AppCompatActivity() {
         val outputFile = File(dir, "compressed_${System.currentTimeMillis()}.jpg")
 
         try {
-            // Decode dengan inSampleSize untuk hemat memory
-            val options = BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-            }
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(sourceFile.absolutePath, options)
 
-            // Hitung sample size
             options.inSampleSize = calculateInSampleSize(options, MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
             options.inJustDecodeBounds = false
 
-            // Decode dengan sample size
             var bitmap = BitmapFactory.decodeFile(sourceFile.absolutePath, options)
 
-            // Resize jika masih terlalu besar
             if (bitmap.width > MAX_IMAGE_SIZE || bitmap.height > MAX_IMAGE_SIZE) {
                 val ratio = min(
                     MAX_IMAGE_SIZE.toFloat() / bitmap.width,
@@ -213,31 +206,24 @@ class TambahLaporan : AppCompatActivity() {
                 bitmap = resized
             }
 
-            // Compress dan save
             FileOutputStream(outputFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
             }
 
             bitmap.recycle()
 
-            // Log hasil kompresi
             val originalSize = sourceFile.length()
             val compressedSize = outputFile.length()
-            android.util.Log.d("ImageCompress",
-                "Original: ${originalSize / 1024}KB → Compressed: ${compressedSize / 1024}KB")
+            android.util.Log.d("ImageCompress", "Original: ${originalSize / 1024}KB → Compressed: ${compressedSize / 1024}KB")
 
             outputFile
         } catch (e: Exception) {
             e.printStackTrace()
-            // Jika kompresi gagal, return file original
             sourceFile.copyTo(outputFile, overwrite = true)
             outputFile
         }
     }
 
-    /**
-     * Calculate sample size untuk decode bitmap secara efisien
-     */
     private fun calculateInSampleSize(
         options: BitmapFactory.Options,
         reqWidth: Int,
@@ -264,7 +250,7 @@ class TambahLaporan : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
             return
         }
-        fused.lastLocation.addOnSuccessListener { loc: Location? ->
+        fused.lastLocation.addOnSuccessListener { loc ->
             if (loc != null) {
                 binding.edtLatitude.setText(loc.latitude.toString())
                 binding.edtLongitude.setText(loc.longitude.toString())
@@ -274,42 +260,16 @@ class TambahLaporan : AppCompatActivity() {
         }
     }
 
-    private fun loadKecamatan() {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        val raw = prefs.getString(LoginActivity.PREF_TOKEN, null)
-        val token = if (raw != null) "Bearer $raw" else null
+    // ===================== Load Kecamatan & Desa dari Room Local =====================
 
+    private fun loadKecamatanFromLocal() {
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                if (NetworkUtil.isOnline(this@TambahLaporan) && token != null) {
-                    val call = ApiClient.instance.getKec(token)
-                    val resp = call.execute()
-
-                    if (resp.isSuccessful && resp.body() != null) {
-                        val list = resp.body()!!.data
-                        val toLocal = list.map {
-                            KecamatanLocalEntity(
-                                id_kecamatan = it.id_kecamatan ?: 0,
-                                id_kabupaten = it.id_kabupaten,
-                                nama_kecamatan = it.nama_kecamatan
-                            )
-                        }
-                        wilayahRepo.saveKecamatan(toLocal)
-                        showKecamatanDropdown(toLocal)
-                    }
-                } else {
-                    val local = wilayahRepo.getKecamatan()
-                    showKecamatanDropdown(local)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                val local = wilayahRepo.getKecamatan()
-                showKecamatanDropdown(local)
-            }
+            val list = wilayahRepo.getKecamatan()
+            showKecamatanDropdownLocal(list)
         }
     }
 
-    private suspend fun showKecamatanDropdown(list: List<KecamatanLocalEntity>) {
+    private suspend fun showKecamatanDropdownLocal(list: List<KecamatanLocalEntity>) {
         withContext(Dispatchers.Main) {
             val names = list.map { it.nama_kecamatan }
             val adapter = ArrayAdapter(this@TambahLaporan, android.R.layout.simple_dropdown_item_1line, names)
@@ -317,47 +277,19 @@ class TambahLaporan : AppCompatActivity() {
 
             binding.spinnerKecamatan.setOnItemClickListener { _, _, pos, _ ->
                 selectedKecamatanId = list[pos].id_kecamatan
-                loadDesa(selectedKecamatanId!!)
+                loadDesaFromLocal(selectedKecamatanId!!)
             }
         }
     }
 
-    private fun loadDesa(idKecamatan: Int) {
-        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-        val raw = prefs.getString(LoginActivity.PREF_TOKEN, null)
-        val token = if (raw != null) "Bearer $raw" else null
-
+    private fun loadDesaFromLocal(idKecamatan: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                if (NetworkUtil.isOnline(this@TambahLaporan) && token != null) {
-                    val call = ApiClient.instance.getDesa(token, idKecamatan)
-                    val resp = call.execute()
-
-                    if (resp.isSuccessful && resp.body() != null) {
-                        val list = resp.body()!!.data
-                        val toLocal = list.map {
-                            DesaLocalEntity(
-                                id_desa = it.id_desa ?: 0,
-                                id_kecamatan = it.id_kecamatan,
-                                nama_desa = it.nama_desa
-                            )
-                        }
-                        wilayahRepo.saveDesa(toLocal)
-                        showDesaDropdown(toLocal)
-                    }
-                } else {
-                    val local = wilayahRepo.getDesaByKecamatan(idKecamatan)
-                    showDesaDropdown(local)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                val local = wilayahRepo.getDesaByKecamatan(idKecamatan)
-                showDesaDropdown(local)
-            }
+            val list = wilayahRepo.getDesaByKecamatan(idKecamatan)
+            showDesaDropdownLocal(list)
         }
     }
 
-    private suspend fun showDesaDropdown(list: List<DesaLocalEntity>) {
+    private suspend fun showDesaDropdownLocal(list: List<DesaLocalEntity>) {
         withContext(Dispatchers.Main) {
             val names = list.map { it.nama_desa }
             val adapter = ArrayAdapter(this@TambahLaporan, android.R.layout.simple_dropdown_item_1line, names)
@@ -368,6 +300,16 @@ class TambahLaporan : AppCompatActivity() {
             }
         }
     }
+
+    // ===================== Comment Fungsi Lama =====================
+    /*
+    private fun loadKecamatan() { ... }
+    private suspend fun showKecamatanDropdown(list: List<KecamatanLocalEntity>) { ... }
+    private fun loadDesa(idKecamatan: Int) { ... }
+    private suspend fun showDesaDropdown(list: List<DesaLocalEntity>) { ... }
+    */
+
+    // ===================== Save Laporan =====================
 
     private fun onSaveClicked() {
         if (isSubmitting) {
@@ -384,14 +326,11 @@ class TambahLaporan : AppCompatActivity() {
             return
         }
 
-        // Tampilkan loading
         setLoadingState(true)
 
         lifecycleScope.launch {
             try {
-                // Capture dan kompres foto
                 val compressedFile = captureAndCompressPhoto()
-
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 
                 if (NetworkUtil.isOnline(this@TambahLaporan)) {
@@ -479,11 +418,7 @@ class TambahLaporan : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 setLoadingState(false)
-                Toast.makeText(
-                    this@TambahLaporan,
-                    "📱 Tersimpan lokal. Akan dikirim saat online.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@TambahLaporan, "📱 Tersimpan lokal. Akan dikirim saat online.", Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
@@ -494,12 +429,9 @@ class TambahLaporan : AppCompatActivity() {
             val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
             val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "") ?: return@withContext false}"
 
-            // Kompres gambar pending jika ada
             val imageFile = pending.local_image_path?.let { path ->
                 val originalFile = File(path)
-                if (originalFile.exists()) {
-                    compressImage(originalFile)
-                } else null
+                if (originalFile.exists()) compressImage(originalFile) else null
             }
 
             val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_pcl.toString())
@@ -530,14 +462,11 @@ class TambahLaporan : AppCompatActivity() {
     private fun setLoadingState(isLoading: Boolean) {
         isSubmitting = isLoading
 
-        // Update button state
         binding.btnSimpan.isEnabled = !isLoading
         binding.btnSimpan.text = if (isLoading) "" else "Selfie + Simpan Data"
 
-        // Tampilkan/sembunyikan ProgressBar
         binding.progressBarSimpan.visibility = if (isLoading) View.VISIBLE else View.GONE
 
-        // Disable semua input saat loading
         binding.edtResume.isEnabled = !isLoading
         binding.edtLatitude.isEnabled = !isLoading
         binding.edtLongitude.isEnabled = !isLoading
