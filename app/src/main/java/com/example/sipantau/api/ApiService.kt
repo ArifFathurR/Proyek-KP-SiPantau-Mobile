@@ -21,6 +21,7 @@ import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.TotalKegPMlResponse
 import com.example.sipantau.model.UpdateProfileRequest
 import com.example.sipantau.model.UserData
+import com.example.sipantau.model.WilayahResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -167,6 +168,11 @@ interface ApiService {
         @Field("hp") hp: String,
         @Field("password") password: String?
     ): Call<Void>
+
+    @GET("wilayah")
+    fun loadAllWilayah(
+        @Header("Authorization") token: String
+    ): Call<WilayahResponse>
 
 }
 

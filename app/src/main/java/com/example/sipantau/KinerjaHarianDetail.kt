@@ -69,6 +69,9 @@ class KinerjaHarianDetail : AppCompatActivity() {
         // Tabs
         setupTabs()
 
+        //back button
+        binding.btnKembali.setOnClickListener { finish() }
+
         // Swipe Refresh
         binding.swipeRefresh.setOnRefreshListener {
             if (isLaporanActive) loadLaporan() else loadProgress()

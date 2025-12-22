@@ -8,6 +8,7 @@ data class KegiatanEntity(
     @PrimaryKey val id_kegiatan_detail_proses: Int,
     val id_pcl: Int?,
     val id_pml: Int?,
+    val total_realisasi_kumulatif: Int = 0,
     val target: String?,
     val status_approval: String?,
     val nama_kegiatan: String,

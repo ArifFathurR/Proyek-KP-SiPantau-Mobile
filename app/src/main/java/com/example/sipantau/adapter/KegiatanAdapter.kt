@@ -31,6 +31,7 @@ class KegiatanAdapter(
             judul.text = item.nama_kegiatan_detail_proses
             tanggal.text = "${item.tanggal_mulai} s.d ${item.tanggal_selesai}"
             textView.text = item.keterangan_wilayah
+            targetRealisasi.text = "${item.target} / ${item.total_realisasi_kumulatif}"
 
             root.setOnClickListener { onItemClick(item) }
             btnDetail.setOnClickListener { onDetailClick(item) }

@@ -100,17 +100,32 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tombol Simpan -->
-            <Button
-                android:id="@+id/btnSimpan"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Simpan Laporan"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/blue"
-                app:cornerRadius="12dp"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/btnSimpan"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Simpan Laporan"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/blue"
+                    app:cornerRadius="12dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBtn"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/white" />
+
+            </FrameLayout>
+
 
         </LinearLayout>
 

@@ -1,6 +1,7 @@
 package com.example.sipantau
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -29,14 +30,14 @@ class TambahProgres : AppCompatActivity() {
         binding = TambahProgresBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnKembali.setOnClickListener {
-            finish()
-        }
+        binding.btnKembali.setOnClickListener { finish() }
 
         idPcl = intent.getIntExtra("id_pcl", 0)
         repository = PantauProgresRepository(this)
 
-        binding.btnSimpan.setOnClickListener { simpanProgres() }
+        binding.btnSimpan.setOnClickListener {
+            simpanProgres()
+        }
     }
 
     private fun simpanProgres() {
@@ -47,12 +48,19 @@ class TambahProgres : AppCompatActivity() {
             Toast.makeText(this, "Jumlah realisasi wajib diisi", Toast.LENGTH_SHORT).show()
             return
         }
+
         if (catatan.isEmpty()) {
             Toast.makeText(this, "Catatan aktivitas wajib diisi", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        // ================= LOADING ON =================
+        setLoading(true)
+
+        val now = SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss",
+            Locale.getDefault()
+        ).format(Date())
 
         val entity = PantauProgresEntity(
             local_id = 0L,
@@ -67,25 +75,25 @@ class TambahProgres : AppCompatActivity() {
 
         lifecycleScope.launch {
 
-            // Coba insert ke repository
-            val (success, localId) = repository.insertProgres(entity)
+            val (success, _) = repository.insertProgres(entity)
 
-            // Jika sukses → API sukses
             if (success) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@TambahProgres, "✅ Progres berhasil dikirim", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@TambahProgres,
+                        "✅ Progres berhasil dikirim",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     finish()
                 }
                 return@launch
             }
 
-            // Jika gagal → cek apakah error API atau offline
             try {
                 val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
                 val tokenRaw = prefs.getString(LoginActivity.PREF_TOKEN, null)
                 val token = "Bearer $tokenRaw"
 
-                // Prepare request body ulang
                 val rbIdPcl = idPcl.toString().toRequestBody("text/plain".toMediaTypeOrNull())
                 val rbJml = jmlRealisasi.toRequestBody("text/plain".toMediaTypeOrNull())
                 val rbCat = catatan.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -99,27 +107,29 @@ class TambahProgres : AppCompatActivity() {
                     ).execute()
                 }
 
-                if (!apiResponse.isSuccessful) {
-                    // Ambil pesan error API
-                    val errorBody = apiResponse.errorBody()?.string()
-                    val apiMessage = extractApiError(errorBody)
+                withContext(Dispatchers.Main) {
+                    setLoading(false)
 
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@TambahProgres, apiMessage, Toast.LENGTH_LONG).show()
+                    if (!apiResponse.isSuccessful) {
+                        val errorBody = apiResponse.errorBody()?.string()
+                        Toast.makeText(
+                            this@TambahProgres,
+                            extractApiError(errorBody),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@TambahProgres,
+                            "Progres berhasil dikirim",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         finish()
                     }
-                    return@launch
-                }
-
-                // Jika tiba-tiba sukses API (jarang terjadi)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@TambahProgres, "Progres berhasil dikirim", Toast.LENGTH_SHORT).show()
-                    finish()
                 }
 
             } catch (e: Exception) {
-                // Gagal jaringan → offline
                 withContext(Dispatchers.Main) {
+                    setLoading(false)
                     Toast.makeText(
                         this@TambahProgres,
                         "Tersimpan secara lokal (akan dikirim saat online)",
@@ -131,18 +141,18 @@ class TambahProgres : AppCompatActivity() {
         }
     }
 
+    // ================= LOADING STATE =================
+    private fun setLoading(isLoading: Boolean) {
+        binding.btnSimpan.isEnabled = !isLoading
+        binding.btnSimpan.text = if (isLoading) "Menyimpan..." else "Simpan Laporan"
+        binding.progressBtn.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
     private fun extractApiError(raw: String?): String {
         return try {
             val json = JSONObject(raw ?: "{}")
-            val msgObj = json.optJSONObject("messages")
-            val msgError = msgObj?.optString("error")
-            val msg2 = json.optString("message")
-
-            when {
-                !msgError.isNullOrEmpty() -> msgError
-                !msg2.isNullOrEmpty() -> msg2
-                else -> "Terjadi kesalahan"
-            }
+            json.optJSONObject("messages")?.optString("error")
+                ?: json.optString("message", "Terjadi kesalahan")
         } catch (e: Exception) {
             "Terjadi kesalahan"
         }

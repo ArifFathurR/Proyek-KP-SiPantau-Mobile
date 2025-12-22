@@ -16,7 +16,7 @@ import com.example.sipantau.localData.entity.*
         KecamatanLocalEntity::class,
         DesaLocalEntity::class
     ],
-    version = 4,                 // ⚠️ Naikkan versi DB
+    version = 6,                 // ⚠️ Naikkan versi DB
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

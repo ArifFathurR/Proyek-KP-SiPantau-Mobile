@@ -72,6 +72,7 @@ class KegiatanRepository(private val context: Context) {
         id_kegiatan_detail_proses = k.id_kegiatan_detail_proses ?: (k.id_pcl ?: k.id_pml ?: 0),
         id_pcl = k.id_pcl,
         id_pml = k.id_pml,
+        total_realisasi_kumulatif= k.total_realisasi_kumulatif,
         target = k.target,
         status_approval = k.status_approval,
         nama_kegiatan = k.nama_kegiatan,

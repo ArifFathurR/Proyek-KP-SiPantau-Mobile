@@ -7,7 +7,7 @@ data class DesaResponse(
 )
 
 data class Desa(
-    val id_desa: Int?,
-    val id_kecamatan: Int?,
+    val id_desa: Int,
+    val id_kecamatan: Int,
     val nama_desa: String
 )

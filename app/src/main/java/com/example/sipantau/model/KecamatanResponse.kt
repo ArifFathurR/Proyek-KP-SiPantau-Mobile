@@ -7,7 +7,7 @@ data class KecamatanResponse(
 )
 
 data class Kecamatan(
-    val id_kecamatan: Int?,
-    val id_kabupaten: Int?,
+    val id_kecamatan: Int,
+    val id_kabupaten: Int,
     val nama_kecamatan: String
 )

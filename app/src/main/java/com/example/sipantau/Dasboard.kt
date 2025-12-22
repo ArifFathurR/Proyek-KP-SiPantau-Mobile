@@ -22,6 +22,8 @@ import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.DashboardBinding
+import com.example.sipantau.localData.entity.DesaLocalEntity
+import com.example.sipantau.localData.entity.KecamatanLocalEntity
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
 import com.example.sipantau.model.Kegiatan
@@ -30,7 +32,9 @@ import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.UserData
 import com.example.sipantau.notifications.NotificationHelper
 import com.example.sipantau.notifications.NotificationScheduler
+import com.example.sipantau.repository.WilayahRepository
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -45,6 +49,8 @@ class Dasboard : AppCompatActivity() {
 
     private val NOTIF_PERMISSION = 101
     private val REQ_10_30 = 1030
+    private val PREF_WILAYAH_SYNC = "pref_wilayah_sync"
+
     private val REQ_16_00 = 1600
 
     companion object {
@@ -53,6 +59,7 @@ class Dasboard : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         try {
             binding = DashboardBinding.inflate(layoutInflater)
@@ -63,8 +70,10 @@ class Dasboard : AppCompatActivity() {
             // ====== CEK LOGIN ======
             if (!isUserLoggedIn()) {
                 navigateToLogin()
+
                 return
             }
+            preloadWilayahOnce()
 
             // Buat channel notifikasi
             NotificationHelper.createChannel(this)
@@ -395,6 +404,7 @@ class Dasboard : AppCompatActivity() {
     private fun KegiatanEntity.toKegiatanModel() = Kegiatan(
         id_pcl = this.id_pcl,
         id_pml = this.id_pml,
+        total_realisasi_kumulatif = this.total_realisasi_kumulatif,
         id_kegiatan_detail_proses = this.id_kegiatan_detail_proses,
         target = this.target,
         status_approval = this.status_approval,
@@ -481,5 +491,75 @@ class Dasboard : AppCompatActivity() {
                 }
             })
     }
+
+    private fun preloadWilayahOnce() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+        val alreadySynced = prefs.getBoolean(PREF_WILAYAH_SYNC, false)
+
+        if (alreadySynced) {
+            Log.d("WILAYAH_SYNC", "⛔ Wilayah sudah pernah disinkron")
+            return
+        }
+
+        val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "")}"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("WILAYAH_SYNC", "🚀 Mulai load wilayah dari API")
+
+                val resp = ApiClient.instance.loadAllWilayah(token).execute()
+
+                if (!resp.isSuccessful || resp.body() == null) {
+                    Log.e("WILAYAH_SYNC", "❌ API gagal: ${resp.code()}")
+                    return@launch
+                }
+
+                val data = resp.body()!!
+
+                // 🔍 DEBUG API
+                Log.d("WILAYAH_SYNC", "API kecamatan: ${data.kecamatan.data.size}")
+                Log.d("WILAYAH_SYNC", "API desa: ${data.kecamatan.data.size}")
+
+                val kecEntities = data.kecamatan.data.map  {
+                    KecamatanLocalEntity(
+                        id_kecamatan = it.id_kecamatan,
+                        id_kabupaten = it.id_kabupaten,
+                        nama_kecamatan = it.nama_kecamatan
+                    )
+                }
+
+                val desaEntities = data.desa.data.map {
+                    DesaLocalEntity(
+                        id_desa = it.id_desa,
+                        id_kecamatan = it.id_kecamatan,
+                        nama_desa = it.nama_desa
+                    )
+                }
+
+                val repo = WilayahRepository(this@Dasboard)
+
+                // 💾 INSERT KE ROOM
+                repo.saveKecamatan(kecEntities)
+                repo.saveDesa(desaEntities)
+
+                // 🔎 VALIDASI ROOM
+                val kecCount = repo.getKecamatan().size
+                val desaCount = repo.getDesaByKecamatan(
+                    kecEntities.firstOrNull()?.id_kecamatan ?: -1
+                ).size
+
+                Log.d("WILAYAH_SYNC", "ROOM kecamatan tersimpan: $kecCount")
+                Log.d("WILAYAH_SYNC", "ROOM contoh desa: $desaCount")
+
+                prefs.edit().putBoolean(PREF_WILAYAH_SYNC, true).apply()
+
+                Log.d("WILAYAH_SYNC", "✅ Sync wilayah SELESAI")
+
+            } catch (e: Exception) {
+                Log.e("WILAYAH_SYNC", "🔥 ERROR preload wilayah", e)
+            }
+        }
+    }
+
 
 }

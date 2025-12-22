@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sipantau.adapter.KegiatanAdapter
-import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.ActivityKinerjaHarianBinding
 import com.example.sipantau.localData.entity.KegiatanEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
@@ -22,36 +21,42 @@ class KinerjaHarian : AppCompatActivity() {
 
     private lateinit var binding: ActivityKinerjaHarianBinding
     private lateinit var kegiatanAdapter: KegiatanAdapter
+
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
+
+    // 🔥 STATE TAB AKTIF
+    private var currentTab: TabType = TabType.AKTIF
+
+    enum class TabType {
+        AKTIF,
+        TIDAK_AKTIF
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityKinerjaHarianBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnKembali.setOnClickListener {
-            finish()
-        }
+        binding.btnKembali.setOnClickListener { finish() }
 
-        // 🔹 Setup RecyclerView dengan 2 callback
+        // ================= Adapter =================
         kegiatanAdapter = KegiatanAdapter(
             emptyList(),
             onItemClick = { kegiatan ->
-                // Click pada card - navigasi ke KinerjaHarianDetail
                 val idPcl = kegiatan.id_pcl
-                val idKegiatanDetailProses = kegiatan.id_kegiatan_detail_proses
+                val idDetail = kegiatan.id_kegiatan_detail_proses
+
                 if (idPcl != null) {
                     val intent = Intent(this, KinerjaHarianDetail::class.java)
                     intent.putExtra("id_pcl", idPcl)
-                    intent.putExtra("id_kegiatan_detail_proses", idKegiatanDetailProses)
+                    intent.putExtra("id_kegiatan_detail_proses", idDetail)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "ID PCL tidak ditemukan pada kegiatan ini", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "ID PCL tidak ditemukan", Toast.LENGTH_SHORT).show()
                 }
             },
             onDetailClick = { kegiatan ->
-                // Click pada button detail - navigasi ke DetailKegiatan
                 val intent = Intent(this, DetailKegiatan::class.java).apply {
                     putExtra("nama_kegiatan", kegiatan.nama_kegiatan)
                     putExtra("nama_kegiatan_detail_proses", kegiatan.nama_kegiatan_detail_proses)
@@ -75,59 +80,90 @@ class KinerjaHarian : AppCompatActivity() {
             adapter = kegiatanAdapter
         }
 
-        // 🔹 Setup tab filter
+        // ================= TAB AKTIF =================
         binding.tabAktif.setOnClickListener {
+            currentTab = TabType.AKTIF
             kegiatanAdapter.updateData(listAktif)
+
             binding.tabAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabTidakAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
 
+        // ================= TAB TIDAK AKTIF =================
         binding.tabTidakAktif.setOnClickListener {
+            currentTab = TabType.TIDAK_AKTIF
             kegiatanAdapter.updateData(listTidakAktif)
+
             binding.tabTidakAktif.setCardBackgroundColor(Color.parseColor("#B3D9FF"))
             binding.tabAktif.setCardBackgroundColor(Color.TRANSPARENT)
         }
 
-        // 🔹 Load data (offline/online)
-        binding.root.post { loadKegiatan() }
+        // ================= SWIPE REFRESH =================
+        binding.swipeRefresh.setOnRefreshListener {
+            loadKegiatan()
+        }
+
+        // ================= LOAD AWAL =================
+        loadKegiatan()
     }
 
+    // ================= LOAD DATA =================
     private fun loadKegiatan() {
         val repo = KegiatanRepository(this)
+        binding.swipeRefresh.isRefreshing = true
 
         lifecycleScope.launch {
-            val data: List<KegiatanEntity> = repo.getKegiatan()
+            try {
+                val data: List<KegiatanEntity> = repo.getKegiatan()
+                val models = data.map { it.toKegiatanModel() }
 
-            listAktif = data.filter { it.status_kegiatan == "aktif" }.map { it.toKegiatanModel() }
-            listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
+                listAktif = models.filter { it.status_kegiatan == "aktif" }
+                listTidakAktif = models.filter { it.status_kegiatan == "tidak aktif" }
 
-            kegiatanAdapter.updateData(listAktif)
+                // 🔥 TAMPILKAN SESUAI TAB YANG AKTIF
+                when (currentTab) {
+                    TabType.AKTIF -> kegiatanAdapter.updateData(listAktif)
+                    TabType.TIDAK_AKTIF -> kegiatanAdapter.updateData(listTidakAktif)
+                }
 
-            if (data.isEmpty() && !isOnline()) {
+                if (data.isEmpty() && !isOnline()) {
+                    Toast.makeText(
+                        this@KinerjaHarian,
+                        "⚠️ Kamu sedang offline. Data lokal kosong.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
                 Toast.makeText(
                     this@KinerjaHarian,
-                    "⚠️ Kamu sedang offline. Data lokal kosong.",
-                    Toast.LENGTH_LONG
+                    "Gagal memuat kegiatan: ${e.message}",
+                    Toast.LENGTH_SHORT
                 ).show()
+            } finally {
+                binding.swipeRefresh.isRefreshing = false
             }
         }
     }
 
+    // ================= ENTITY → MODEL =================
     private fun KegiatanEntity.toKegiatanModel() = Kegiatan(
-        id_pcl = this.id_pcl,
-        id_pml = this.id_pml,
-        id_kegiatan_detail_proses = this.id_kegiatan_detail_proses,
-        target = this.target,
-        status_approval = this.status_approval,
-        nama_kegiatan = this.nama_kegiatan,
-        nama_kegiatan_detail_proses = this.nama_kegiatan_detail_proses,
-        tanggal_mulai = this.tanggal_mulai,
-        tanggal_selesai = this.tanggal_selesai,
-        nama_kabupaten = this.nama_kabupaten,
-        status_kegiatan = this.status_kegiatan,
-        keterangan_wilayah = this.keterangan_wilayah
+        id_pcl = id_pcl,
+        id_pml = id_pml,
+        total_realisasi_kumulatif = total_realisasi_kumulatif,
+        id_kegiatan_detail_proses = id_kegiatan_detail_proses,
+        target = target,
+        status_approval = status_approval,
+        nama_kegiatan = nama_kegiatan,
+        nama_kegiatan_detail_proses = nama_kegiatan_detail_proses,
+        tanggal_mulai = tanggal_mulai,
+        tanggal_selesai = tanggal_selesai,
+        nama_kabupaten = nama_kabupaten,
+        status_kegiatan = status_kegiatan,
+        keterangan_wilayah = keterangan_wilayah
     )
 
+    // ================= CEK INTERNET =================
     private fun isOnline(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork ?: return false

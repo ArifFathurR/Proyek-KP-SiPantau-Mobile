@@ -110,17 +110,31 @@
 
 
     <!-- RecyclerView untuk List Kegiatan -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvKegiatan"
-        android:layout_width="match_parent"
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="20dp"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="15dp"
         android:layout_marginBottom="20dp"
-        tools:listitem="@layout/item_list_kegiatan"
-        app:layout_constraintTop_toBottomOf="@+id/tabLayout"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvKegiatan"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="20dp"
+            tools:listitem="@layout/item_list_kegiatan"
+            app:layout_constraintTop_toBottomOf="@+id/parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -28,7 +28,7 @@ class ProgresAdapter(
     override fun onBindViewHolder(holder: ProgresViewHolder, position: Int) {
         val item = listProgres[position]
         with(holder.binding) {
-            tvJumlahRealisasi.text = "Jumlah Realisasi: ${item.jumlah_realisasi_kumulatif ?: 0}"
+            tvJumlahRealisasi.text = "Realisasi Kumulatif: ${item.jumlah_realisasi_kumulatif ?: 0}"
             jmlRealisasiHarian.text = "Realisasi Harian: ${item.jumlah_realisasi_absolut ?: 0}"
             tvDetailProgress2.text = item.catatan_aktivitas ?: "-"
             tgl.text = item.created_at ?: "-"
