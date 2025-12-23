@@ -10,6 +10,10 @@ import com.example.sipantau.DetailLaporanActivity
 import com.example.sipantau.R
 import com.example.sipantau.databinding.ItemListLaporanBinding
 import com.example.sipantau.model.DisplayLaporan
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.DayOfWeek
+import java.util.Locale
 
 class PelaporanAdapter(
     private var items: List<DisplayLaporan>,
@@ -31,7 +35,8 @@ class PelaporanAdapter(
 
             // Text fields
             judul.text = item.nama_kegiatan_detail_proses ?: "Laporan"
-            tanggal.text = item.created_at
+            // Tambahkan hari pada created_at
+            tanggal.text = "${getDayName(item.created_at ?: "")}, ${item.created_at ?: "-"}"
             textView.text = item.resume
             kegiatan.text = item.nama_kegiatan_detail_proses ?: ""
 
@@ -62,12 +67,9 @@ class PelaporanAdapter(
             // SEND button visible only for pending items
             btnSend.visibility = if (item.isPending) View.VISIBLE else View.GONE
 
-            // when clicked invoke activity's handler
             btnSend.setOnClickListener {
-                // disable button briefly to prevent double clicks
                 it.isEnabled = false
                 onSendClick(item)
-                // re-enable after callback returns control
                 it.isEnabled = true
             }
 
@@ -75,7 +77,6 @@ class PelaporanAdapter(
             root.setOnClickListener {
                 val context = root.context
                 val intent = Intent(context, DetailLaporanActivity::class.java).apply {
-                    // Kirim semua data yang diperlukan
                     putExtra("nama_kegiatan", item.nama_kegiatan)
                     putExtra("nama_kegiatan_detail_proses", item.nama_kegiatan_detail_proses)
                     putExtra("resume", item.resume)
@@ -109,5 +110,24 @@ class PelaporanAdapter(
     fun update(newList: List<DisplayLaporan>) {
         items = newList
         notifyDataSetChanged()
+    }
+
+    // Fungsi untuk mengambil nama hari dari created_at
+    private fun getDayName(createdAt: String): String {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val dateTime = LocalDateTime.parse(createdAt, formatter)
+            when (dateTime.dayOfWeek) {
+                DayOfWeek.MONDAY -> "Senin"
+                DayOfWeek.TUESDAY -> "Selasa"
+                DayOfWeek.WEDNESDAY -> "Rabu"
+                DayOfWeek.THURSDAY -> "Kamis"
+                DayOfWeek.FRIDAY -> "Jumat"
+                DayOfWeek.SATURDAY -> "Sabtu"
+                DayOfWeek.SUNDAY -> "Minggu"
+            }
+        } catch (e: Exception) {
+            "-"
+        }
     }
 }

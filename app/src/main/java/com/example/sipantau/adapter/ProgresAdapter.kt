@@ -7,6 +7,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sipantau.DetailProgresActivity
 import com.example.sipantau.databinding.ItemListPantauProgresBinding
 import com.example.sipantau.model.PantauProgres
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class ProgresAdapter(
     private var listProgres: List<PantauProgres>,
@@ -31,7 +34,9 @@ class ProgresAdapter(
             tvJumlahRealisasi.text = "Realisasi Kumulatif: ${item.jumlah_realisasi_kumulatif ?: 0}"
             jmlRealisasiHarian.text = "Realisasi Harian: ${item.jumlah_realisasi_absolut ?: 0}"
             tvDetailProgress2.text = item.catatan_aktivitas ?: "-"
-            tgl.text = item.created_at ?: "-"
+
+            // Hanya tampilkan hari + tanggal
+            tgl.text = formatDayAndDate(item.created_at ?: "")
 
             // Button Hapus
             btnHapus.setOnClickListener {
@@ -42,16 +47,12 @@ class ProgresAdapter(
             root.setOnClickListener {
                 val context = root.context
                 val intent = Intent(context, DetailProgresActivity::class.java).apply {
-                    // Kirim semua data yang diperlukan
                     putExtra("id_pantau_progess", item.id_pantau_progess ?: 0)
                     putExtra("jumlah_realisasi_absolut", item.jumlah_realisasi_absolut ?: 0)
                     putExtra("jumlah_realisasi_kumulatif", item.jumlah_realisasi_kumulatif ?: 0)
                     putExtra("catatan_aktivitas", item.catatan_aktivitas ?: "")
                     putExtra("created_at", item.created_at ?: "")
-
-                    // Data tambahan jika ada
                     putExtra("id_pcl", item.id_pcl ?: 0)
-
                 }
                 context.startActivity(intent)
             }
@@ -63,5 +64,17 @@ class ProgresAdapter(
     fun updateData(newData: List<PantauProgres>) {
         listProgres = newData
         notifyDataSetChanged()
+    }
+
+    // Format hanya hari + tanggal (misal: "Senin, 23-12-2025")
+    private fun formatDayAndDate(createdAt: String): String {
+        return try {
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val dateTime = LocalDateTime.parse(createdAt, inputFormatter)
+            val outputFormatter = DateTimeFormatter.ofPattern("EEEE, dd-MM-yyyy", Locale("id", "ID"))
+            dateTime.format(outputFormatter)
+        } catch (e: Exception) {
+            "-"
+        }
     }
 }

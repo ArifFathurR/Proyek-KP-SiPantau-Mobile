@@ -120,93 +120,129 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Fitur Utama"
+                    android:text="Panduan Fitur Utama"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="16dp" />
 
-                <LinearLayout
+                <!-- Pantau Aktivitas -->
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:text="1. Pantau Aktivitas"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_kegiatan"
-                        android:layout_marginEnd="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Pantau Aktivitas Kegiatan"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:text="Langkah-langkah pelaporan kegiatan survei:"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/pantauanprogres"
-                        android:layout_marginEnd="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Pantauan Progress Kegiatan"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:text="• Pilih menu Pantau Aktivitas\n• Pilih kegiatan survei yang ingin dilaporkan\n• Tekan ikon tambah (+) untuk membuat laporan baru\n• Isi data: Kecamatan, Kelurahan, Ringkasan, Koordinat, dan Foto\n• Laporan dapat disimpan offline (tab Pending)\n• Kirim laporan saat online (pindah ke tab Terkirim)"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginBottom="16dp" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/kinerjahaarian"
-                        android:layout_marginEnd="12dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Kinerja Harian PCL"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
+                <!-- Pantau Progres -->
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="2. Pantau Progres"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/achievement"
-                        android:layout_marginEnd="12dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Langkah-langkah pelaporan progres harian:"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Achievement dan Feedback"
-                        android:textSize="16sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Pilih menu Pantau Progres\n• Pilih kegiatan survei\n• Tekan ikon tambah (+) untuk menambah laporan progres\n• Isi jumlah realisasi dan ringkasan pendataan\n• Validasi: Satu laporan per hari, realisasi tidak boleh melebihi target kumulatif\n• Data disimpan lokal jika offline, otomatis terkirim saat online"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginBottom="16dp" />
 
-                </LinearLayout>
+                <!-- Kinerja Harian -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="3. Kinerja Harian"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Memantau performa survei:"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Pilih menu Kinerja Harian\n• Pilih kegiatan survei\n• Lihat visualisasi kurva S target vs realisasi\n• Pantau laporan aktivitas dan progres realisasi harian"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Achievement -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="4. Achievement"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Melihat pencapaian:"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Pilih menu Achievement\n• Lihat daftar pencapaian yang sudah dan belum tercapai\n• Kategori: Kepatuhan, Performa, Speed, Aktivitas, Onboarding\n• Pantau status pencapaian di setiap kategori"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Feedback -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="5. Feedback"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Memberikan rating dan ulasan:"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Pilih menu Feedback\n• Berikan rating (1-5 bintang)\n• Tulis ulasan tentang aplikasi atau kegiatan survei\n• Kirim feedback untuk membantu pengembangan aplikasi"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp" />
 
             </LinearLayout>
 
@@ -218,6 +254,7 @@
             android:layout_height="wrap_content"
             android:text="© 2025 SiPantau - BPS Provinsi Riau. All rights reserved."
             android:textSize="12sp"
+            android:textAlignment="center"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="20dp"
             app:layout_constraintTop_toBottomOf="@+id/cardFeatures"

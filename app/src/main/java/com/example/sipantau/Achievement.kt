@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.sipantau.adapter.AchievementAdapter
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
@@ -22,8 +23,14 @@ class Achievement : AppCompatActivity() {
     private lateinit var token: String
     private var sobatId: Long = 0
 
-    private var achievedList: List<UserAchievement> = emptyList()
-    private var unachievedList: List<UserAchievement> = emptyList()
+    private var allAchievements: List<UserAchievement> = emptyList()
+    private var displayedAchievements: MutableList<UserAchievement> = mutableListOf()
+    private lateinit var adapter: AchievementAdapter
+
+    private var isLoading = false
+    private val pageSize = 10
+    private var currentIndex = 0
+    private var currentTabAchieved = true // true = Tercapai, false = Belum Tercapai
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,60 +45,101 @@ class Achievement : AppCompatActivity() {
 
         binding.btnKembali.setOnClickListener { finish() }
 
+        setupRecyclerView()
+        setupTabs()
+        setupSwipeRefresh()
+
         loadAchievement()
     }
 
+    private fun setupRecyclerView() {
+        adapter = AchievementAdapter(displayedAchievements)
+        val layoutManager = LinearLayoutManager(this)
+        binding.recylerView.layoutManager = layoutManager
+        binding.recylerView.adapter = adapter
+
+        // Lazy loading
+        binding.recylerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(rv, dx, dy)
+                val totalItemCount = layoutManager.itemCount
+                val lastVisible = layoutManager.findLastVisibleItemPosition()
+
+                if (!isLoading && totalItemCount <= lastVisible + 2) {
+                    loadMoreItems()
+                }
+            }
+        })
+    }
+
+    private fun setupTabs() {
+        binding.tabTercapai.setOnClickListener {
+            currentTabAchieved = true
+            resetLazyLoading()
+            highlightTab(true)
+        }
+        binding.tabBelumTercapai.setOnClickListener {
+            currentTabAchieved = false
+            resetLazyLoading()
+            highlightTab(false)
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefresh.setOnRefreshListener {
+            loadAchievement()
+        }
+    }
+
     private fun loadAchievement() {
+        binding.swipeRefresh.isRefreshing = true
 
         ApiClient.instance.getAchievement("Bearer $token", sobatId)
             .enqueue(object : Callback<AchievementResponse> {
-
                 override fun onResponse(
                     call: Call<AchievementResponse>,
                     response: Response<AchievementResponse>
                 ) {
+                    binding.swipeRefresh.isRefreshing = false
                     if (response.isSuccessful) {
-
                         val data = response.body()
                         if (data != null) {
-                            // Pisahkan achievement
-                            achievedList = data.achievement.filter { it.achieved }
-                            unachievedList = data.achievement.filter { !it.achieved }
-
-                            showTercapai()
-                            setupTabs()
+                            allAchievements = data.achievement
+                            resetLazyLoading()
                         }
-
                     } else {
                         Toast.makeText(this@Achievement, "Gagal mengambil data", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<AchievementResponse>, t: Throwable) {
+                    binding.swipeRefresh.isRefreshing = false
                     Toast.makeText(this@Achievement, t.message, Toast.LENGTH_LONG).show()
                 }
             })
     }
 
-    // ---------------------------------------
-    // TAB SECTION
-    // ---------------------------------------
-
-    private fun setupTabs() {
-        binding.tabTercapai.setOnClickListener { showTercapai() }
-        binding.tabBelumTercapai.setOnClickListener { showBelumTercapai() }
+    private fun resetLazyLoading() {
+        currentIndex = 0
+        displayedAchievements.clear()
+        loadMoreItems()
     }
 
-    private fun showTercapai() {
-        binding.recylerView.layoutManager = LinearLayoutManager(this)
-        binding.recylerView.adapter = AchievementAdapter(achievedList)
-        highlightTab(true)
-    }
+    private fun loadMoreItems() {
+        if (isLoading) return
+        isLoading = true
 
-    private fun showBelumTercapai() {
-        binding.recylerView.layoutManager = LinearLayoutManager(this)
-        binding.recylerView.adapter = AchievementAdapter(unachievedList)
-        highlightTab(false)
+        val filtered = allAchievements.filter { it.achieved == currentTabAchieved }
+        val nextIndex = (currentIndex + pageSize).coerceAtMost(filtered.size)
+        if (currentIndex >= nextIndex) {
+            isLoading = false
+            return
+        }
+
+        displayedAchievements.addAll(filtered.subList(currentIndex, nextIndex))
+        currentIndex = nextIndex
+        adapter.notifyDataSetChanged()
+        isLoading = false
     }
 
     private fun highlightTab(isTercapai: Boolean) {
