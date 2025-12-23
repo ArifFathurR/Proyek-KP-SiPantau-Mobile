@@ -48,6 +48,8 @@ class ProgresKegiatanSaya : AppCompatActivity() {
             onItemClick = { kegiatan ->
                 val intent = Intent(this, PantauProgres::class.java).apply {
                     putExtra("id_pcl", kegiatan.id_pcl ?: 0)
+                    putExtra("nama_kegiatan", kegiatan.nama_kegiatan)
+                    putExtra("nama_kegiatan_detail_proses", kegiatan.nama_kegiatan_detail_proses)
                     putExtra("id_kegiatan_detail_proses", kegiatan.id_kegiatan_detail_proses ?: 0)
                     putExtra("target", kegiatan.target ?: 0)
                     putExtra(

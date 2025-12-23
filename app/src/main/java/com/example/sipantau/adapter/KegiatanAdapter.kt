@@ -28,7 +28,8 @@ class KegiatanAdapter(
     override fun onBindViewHolder(holder: KegiatanViewHolder, position: Int) {
         val item = listKegiatan[position]
         with(holder.binding) {
-            judul.text = item.nama_kegiatan_detail_proses
+            detailproses.text = item.nama_kegiatan_detail_proses
+            judul.text = item.nama_kegiatan
             tanggal.text = "${item.tanggal_mulai} s.d ${item.tanggal_selesai}"
             textView.text = item.keterangan_wilayah
             targetRealisasi.text = "${item.total_realisasi_kumulatif} / ${item.target}"
