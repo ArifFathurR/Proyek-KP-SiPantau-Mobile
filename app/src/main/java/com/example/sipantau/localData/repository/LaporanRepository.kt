@@ -138,6 +138,8 @@ class LaporanRepository(private val context: Context) {
             dao.deletePendingByLocalId(localId)
         }
 
+    // Modifikasi pada LaporanRepository.kt
+
     suspend fun uploadPendingOnce(p: PendingLaporanEntity): Boolean =
         withContext(Dispatchers.IO) {
             if (token == null) return@withContext false
@@ -150,6 +152,9 @@ class LaporanRepository(private val context: Context) {
                 val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_kecamatan?.toString() ?: "")
                 val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_desa?.toString() ?: "")
 
+                // ✨ TAMBAHAN: Kirim created_at dari pending
+                val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.created_at ?: "")
+
                 val part = p.local_image_path?.let { File(it) }?.let { f ->
                     val req = RequestBody.create("image/*".toMediaTypeOrNull(), f)
                     MultipartBody.Part.createFormData("image", f.name, req)
@@ -161,7 +166,9 @@ class LaporanRepository(private val context: Context) {
 
                 val resp = ApiClient.instance.createPelaporan(
                     token!!,
-                    idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody, part
+                    idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                    createdAtBody, // ✨ TAMBAHAN parameter
+                    part
                 ).execute()
 
                 if (resp.isSuccessful) {

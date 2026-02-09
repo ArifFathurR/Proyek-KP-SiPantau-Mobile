@@ -348,6 +348,8 @@ class TambahLaporan : AppCompatActivity() {
         }
     }
 
+    // Modifikasi pada TambahLaporan.kt
+
     private suspend fun uploadToServer(
         imageFile: File?,
         resume: String,
@@ -367,13 +369,18 @@ class TambahLaporan : AppCompatActivity() {
             val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedKecamatanId?.toString() ?: "")
             val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedDesaId?.toString() ?: "")
 
+            // ✨ TAMBAHAN: Kirim created_at (gunakan timestamp current untuk laporan baru)
+            val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), timestamp)
+
             val imagePart = imageFile?.let {
                 val reqFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), it)
                 MultipartBody.Part.createFormData("image", it.name, reqFile)
             } ?: MultipartBody.Part.createFormData("image", "")
 
             val call = ApiClient.instance.createPelaporan(
-                token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody, imagePart
+                token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                createdAtBody, // ✨ TAMBAHAN parameter
+                imagePart
             )
             val response = call.execute()
 
@@ -392,6 +399,47 @@ class TambahLaporan : AppCompatActivity() {
                 setLoadingState(false)
                 savePendingLocally(imageFile?.absolutePath, resume, lat, lon, timestamp)
             }
+        }
+    }
+
+    // ✨ JUGA MODIFIKASI uploadPendingOnce di TambahLaporan.kt (jika ada)
+    suspend fun uploadPendingOnce(pending: PendingLaporanEntity): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+            val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "") ?: return@withContext false}"
+
+            val imageFile = pending.local_image_path?.let { path ->
+                val originalFile = File(path)
+                if (originalFile.exists()) compressImage(originalFile) else null
+            }
+
+            val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_pcl.toString())
+            val idKegBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kegiatan_detail_proses.toString())
+            val resumeBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.resume)
+            val latBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.latitude ?: "")
+            val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.longitude ?: "")
+            val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kecamatan?.toString() ?: "")
+            val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_desa?.toString() ?: "")
+
+            // ✨ TAMBAHAN: Kirim created_at dari pending
+            val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.created_at ?: "")
+
+            val imagePart = imageFile?.let {
+                val reqFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), it)
+                MultipartBody.Part.createFormData("image", it.name, reqFile)
+            } ?: MultipartBody.Part.createFormData("image", "")
+
+            val call = ApiClient.instance.createPelaporan(
+                token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                createdAtBody, // ✨ TAMBAHAN parameter
+                imagePart
+            )
+            val response = call.execute()
+
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
@@ -424,40 +472,40 @@ class TambahLaporan : AppCompatActivity() {
         }
     }
 
-    suspend fun uploadPendingOnce(pending: PendingLaporanEntity): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
-            val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "") ?: return@withContext false}"
-
-            val imageFile = pending.local_image_path?.let { path ->
-                val originalFile = File(path)
-                if (originalFile.exists()) compressImage(originalFile) else null
-            }
-
-            val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_pcl.toString())
-            val idKegBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kegiatan_detail_proses.toString())
-            val resumeBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.resume)
-            val latBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.latitude ?: "")
-            val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.longitude ?: "")
-            val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kecamatan?.toString() ?: "")
-            val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_desa?.toString() ?: "")
-
-            val imagePart = imageFile?.let {
-                val reqFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), it)
-                MultipartBody.Part.createFormData("image", it.name, reqFile)
-            } ?: MultipartBody.Part.createFormData("image", "")
-
-            val call = ApiClient.instance.createPelaporan(
-                token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody, imagePart
-            )
-            val response = call.execute()
-
-            response.isSuccessful
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
+//    suspend fun uploadPendingOnce(pending: PendingLaporanEntity): Boolean = withContext(Dispatchers.IO) {
+//        try {
+//            val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+//            val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "") ?: return@withContext false}"
+//
+//            val imageFile = pending.local_image_path?.let { path ->
+//                val originalFile = File(path)
+//                if (originalFile.exists()) compressImage(originalFile) else null
+//            }
+//
+//            val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_pcl.toString())
+//            val idKegBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kegiatan_detail_proses.toString())
+//            val resumeBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.resume)
+//            val latBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.latitude ?: "")
+//            val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.longitude ?: "")
+//            val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kecamatan?.toString() ?: "")
+//            val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_desa?.toString() ?: "")
+//
+//            val imagePart = imageFile?.let {
+//                val reqFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), it)
+//                MultipartBody.Part.createFormData("image", it.name, reqFile)
+//            } ?: MultipartBody.Part.createFormData("image", "")
+//
+//            val call = ApiClient.instance.createPelaporan(
+//                token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody, imagePart
+//            )
+//            val response = call.execute()
+//
+//            response.isSuccessful
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            false
+//        }
+//    }
 
     private fun setLoadingState(isLoading: Boolean) {
         isSubmitting = isLoading

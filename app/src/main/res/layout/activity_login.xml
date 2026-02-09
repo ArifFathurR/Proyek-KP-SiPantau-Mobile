@@ -5,115 +5,128 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/blue">
 
-    <TextView
-        android:id="@+id/txt1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:text="SiPantau"
-        android:textColor="@color/white"
-        android:textSize="38sp"
-        android:textStyle="bold"
-        android:layout_marginTop="100dp"/>
-
-    <TextView
-        android:id="@+id/txt2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txt1"
-        android:textStyle="normal"
-        android:text="Sistem Pelaporan Kegiatan Lapangan BPS Provinsi Riau"
-        android:textColor="@color/white"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardLogin"
-        android:layout_marginTop="80dp"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:backgroundTint="@color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txt2"
-        android:layout_marginHorizontal="20dp"
-        app:cardCornerRadius="10dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
+
             <TextView
+                android:id="@+id/txt1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
-                android:text="Login Pengguna"
-                android:layout_gravity="center"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:text="SiPantau"
+                android:textColor="@color/white"
+                android:textSize="38sp"
+                android:textStyle="bold"
+                android:layout_marginTop="100dp"/>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/idPengguna"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/txt2"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="70dp"
-                android:hint="Email">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txt1"
+                android:textStyle="normal"
+                android:text="Sistem Pelaporan Kegiatan Lapangan BPS Provinsi Riau"
+                android:textColor="@color/white"/>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtIdPengguna"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/password"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardLogin"
+                android:layout_marginTop="80dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="20dp"
+                android:layout_height="400dp"
+                android:backgroundTint="@color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txt2"
+                android:layout_marginHorizontal="20dp"
+                app:cardCornerRadius="10dp">
 
-                android:hint="Password">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtPassword"
-                    style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword"/>
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="60dp"
+                        android:text="Login Pengguna"
+                        android:layout_gravity="center"
+                        android:textColor="@color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
-    </androidx.cardview.widget.CardView>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/idPengguna"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="15dp"
+                        android:layout_marginTop="70dp"
+                        android:hint="Email">
 
-    <Button
-        android:id="@+id/btn_login"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardLogin"
-        android:layout_marginTop="20dp"
-        android:text="Log In"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:backgroundTint="#3BB4F9"
-        android:layout_marginHorizontal="20dp"/>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edtIdPengguna"
+                            style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:visibility="gone"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/white"
-        app:layout_constraintStart_toStartOf="@+id/btn_login"
-        app:layout_constraintEnd_toEndOf="@+id/btn_login"
-        app:layout_constraintTop_toTopOf="@+id/btn_login"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_login"/>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="15dp"
+                        android:layout_marginTop="20dp"
+                        android:hint="Password">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edtPassword"
+                            style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="40dp"
+                android:backgroundTint="#3BB4F9"
+                android:text="Log In"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardLogin" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:visibility="gone"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/white"
+                app:layout_constraintStart_toStartOf="@+id/btn_login"
+                app:layout_constraintEnd_toEndOf="@+id/btn_login"
+                app:layout_constraintTop_toTopOf="@+id/btn_login"
+                app:layout_constraintBottom_toBottomOf="@+id/btn_login"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

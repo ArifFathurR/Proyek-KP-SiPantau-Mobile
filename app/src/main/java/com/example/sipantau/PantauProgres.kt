@@ -24,6 +24,9 @@ class PantauProgres : AppCompatActivity() {
     private var idPcl: Int = 0
     private var namaKegiatan: String? = ""
     private var namaKegiatanDetailProses: String? = ""
+    private var target: String? = ""
+    private var totalRealisasiKumulatif: Int = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,13 +37,21 @@ class PantauProgres : AppCompatActivity() {
         idPcl = intent.getIntExtra("id_pcl", 0)
         namaKegiatan = intent.getStringExtra("nama_kegiatan")
         namaKegiatanDetailProses = intent.getStringExtra("nama_kegiatan_detail_proses")
+        target = intent.getStringExtra("target")
+        totalRealisasiKumulatif =
+            intent.getIntExtra("total_realisasi_kumulatif", 0)
+
 
         repository = PantauProgresRepository(this)
 
         // Set header text
         binding.kegiatanDetail.text = namaKegiatan
         binding.kegiatanDetailProses.text = namaKegiatanDetailProses
-        binding.RealisasiKumulatif.text = "Realisasi Kumulatif: 0"
+
+        binding.kegiatanDetail.text = namaKegiatan
+        binding.kegiatanDetailProses.text = namaKegiatanDetailProses
+        binding.RealisasiKumulatif.text =
+            "Realisasi Kumulatif: $totalRealisasiKumulatif / $target"
 
         // Adapter
         progresAdapter = ProgresAdapter(emptyList()) { progres ->
@@ -110,12 +121,12 @@ class PantauProgres : AppCompatActivity() {
                 // ================================
                 // CETAK REALISASI KUMULATIF HEADER
                 // ================================
-                val totalKumulatif = models
-                    .maxByOrNull { it.jumlah_realisasi_kumulatif ?: 0 }
-                    ?.jumlah_realisasi_kumulatif ?: 0
-
-                binding.RealisasiKumulatif.text =
-                    "Realisasi Kumulatif: $totalKumulatif"
+//                val totalKumulatif = models
+//                    .maxByOrNull { it.jumlah_realisasi_kumulatif ?: 0 }
+//                    ?.jumlah_realisasi_kumulatif ?: 0
+//
+//                binding.RealisasiKumulatif.text =
+//                    "Realisasi Kumulatif: $totalKumulatif"
 
                 if (models.isEmpty()) {
                     Toast.makeText(

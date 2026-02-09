@@ -76,6 +76,7 @@ interface ApiService {
         @Part("longitude") longitude: RequestBody,
         @Part("id_kecamatan") idKecamatan: RequestBody,
         @Part("id_desa") idDesa: RequestBody,
+        @Part("created_at") createdAt: RequestBody,
         @Part image: MultipartBody.Part
     ): Call<Void>
 

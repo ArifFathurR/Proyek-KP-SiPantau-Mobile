@@ -112,13 +112,15 @@ class PantauAktivitas : AppCompatActivity() {
                         nama_kegiatan = "Pending Upload",
                         nama_kegiatan_detail_proses = "",
                         nama_kabupaten = null,
-                        nama_kecamatan = null, // opsional display
-                        nama_desa = null,      // opsional display
+                        nama_kecamatan = null,
+                        nama_desa = null,
                         created_at = p.created_at,
                         localId = p.local_id,
                         localImagePath = p.local_image_path,
-                        id_kecamatan = p.id_kecamatan, // penting
-                        id_desa = p.id_desa            // penting
+                        id_kecamatan = p.id_kecamatan,
+                        id_desa = p.id_desa,
+                        // ✨ TAMBAHAN: Simpan data pending lengkap untuk referensi
+                        pendingEntity = p
                     )
                 }
             }
@@ -141,7 +143,8 @@ class PantauAktivitas : AppCompatActivity() {
                         localId = null,
                         localImagePath = null,
                         id_kecamatan = null,
-                        id_desa = null
+                        id_desa = null,
+                        pendingEntity = null
                     )
                 }
             }
@@ -185,20 +188,27 @@ class PantauAktivitas : AppCompatActivity() {
 
                     Toast.makeText(this@PantauAktivitas, "Mengirim...", Toast.LENGTH_SHORT).show()
 
-                    val pending = PendingLaporanEntity(
-                        local_id = item.localId ?: 0L,
-                        id_pcl = idPcl,
-                        id_kegiatan_detail_proses = idKegDetail,
-                        resume = item.resume,
-                        latitude = item.latitude,
-                        longitude = item.longitude,
-                        id_kecamatan = item.id_kecamatan, // dari DisplayLaporan
-                        id_desa = item.id_desa,           // dari DisplayLaporan
-                        local_image_path = item.localImagePath,
-                        created_at = item.created_at
-                    )
+                    // ✨ PERBAIKAN: Gunakan pendingEntity langsung dari item
+                    // Ini memastikan semua field termasuk created_at asli terkirim
+                    val pendingEntity = item.pendingEntity
 
-                    val ok = repo.uploadPendingOnce(pending)
+                    if (pendingEntity == null) {
+                        // Fallback jika pendingEntity null (seharusnya tidak terjadi)
+                        android.util.Log.e("SEND_PENDING", "pendingEntity is null!")
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@PantauAktivitas, "Error: Data pending tidak ditemukan", Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
+
+                    // ✨ DEBUG LOG
+                    android.util.Log.d("SEND_PENDING", "=== MENGIRIM PENDING ===")
+                    android.util.Log.d("SEND_PENDING", "local_id: ${pendingEntity.local_id}")
+                    android.util.Log.d("SEND_PENDING", "created_at: ${pendingEntity.created_at}")
+                    android.util.Log.d("SEND_PENDING", "resume: ${pendingEntity.resume}")
+                    android.util.Log.d("SEND_PENDING", "========================")
+
+                    val ok = repo.uploadPendingOnce(pendingEntity)
 
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
