@@ -34,6 +34,7 @@ class ProgresAdapter(
 
 //            tvJumlahRealisasi.text = "Realisasi Kumulatif: ${item.jumlah_realisasi_kumulatif ?: 0}"
             tvJumlahRealisasi.text = "Realisasi Harian: ${item.jumlah_realisasi_absolut ?: 0}"
+            tvDetailProgress3.text = "Id Sub-sls : ${item.id_subsls ?: "-"}"
             tvDetailProgress2.text = item.catatan_aktivitas ?: "-"
 
             // Hanya tampilkan hari + tanggal

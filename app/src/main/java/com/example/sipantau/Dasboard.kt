@@ -25,7 +25,9 @@ import com.example.sipantau.databinding.DashboardBinding
 import com.example.sipantau.localData.entity.DesaLocalEntity
 import com.example.sipantau.localData.entity.KecamatanLocalEntity
 import com.example.sipantau.localData.entity.KegiatanEntity
+import com.example.sipantau.localData.entity.SubslsLocalEntity
 import com.example.sipantau.localData.repository.KegiatanRepository
+import com.example.sipantau.localData.repository.SubslsRepository
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.ReminderResponse
 import com.example.sipantau.model.TotalKegPClResponse
@@ -36,6 +38,7 @@ import com.example.sipantau.repository.WilayahRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,6 +49,7 @@ class Dasboard : AppCompatActivity() {
     private lateinit var kegiatanAdapter: KegiatanAdapter
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
+    private var se2026IdPcl: Int? = null
 
     private val NOTIF_PERMISSION = 101
     private val REQ_10_30 = 1030
@@ -74,6 +78,7 @@ class Dasboard : AppCompatActivity() {
                 return
             }
             preloadWilayahOnce()
+            preloadSubslsOnce()
 
             // Buat channel notifikasi
             NotificationHelper.createChannel(this)
@@ -140,6 +145,8 @@ class Dasboard : AppCompatActivity() {
                 startActivity(Intent(this, ProgresKegiatanSaya::class.java))
             }
 
+            setSE2026MenuVisible(false)
+
             binding.btnKinerjaHarian.setOnClickListener {
                 startActivity(Intent(this, KinerjaHarian::class.java))
             }
@@ -150,6 +157,21 @@ class Dasboard : AppCompatActivity() {
 
             binding.btnAchievement.setOnClickListener {
                 startActivity(Intent(this, Achievement::class.java))
+            }
+            binding.btnIndustriDigital.setOnClickListener {
+                startActivity(Intent( this, ProgresIndustriDigital::class.java))
+            }
+            binding.btnLaporKeluarga.setOnClickListener {
+                val intent = Intent(this, ProgresKeluarga::class.java).apply {
+                    se2026IdPcl?.let { putExtra("id_pcl", it) }
+                }
+                startActivity(intent)
+            }
+            binding.btnLaporPertanian.setOnClickListener {
+                val intent = Intent(this, ProgresPertanian::class.java).apply {
+                    se2026IdPcl?.let { putExtra("id_pcl", it) }
+                }
+                startActivity(intent)
             }
 
             binding.tabAktif.setOnClickListener {
@@ -387,6 +409,7 @@ class Dasboard : AppCompatActivity() {
                 listTidakAktif = data.filter { it.status_kegiatan == "tidak aktif" }.map { it.toKegiatanModel() }
 
                 kegiatanAdapter.updateData(listAktif)
+                checkSE2026(data.mapNotNull { it.id_pcl }.distinct())
 
                 if (data.isEmpty() && !isOnline()) {
                     Toast.makeText(
@@ -397,6 +420,72 @@ class Dasboard : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading kegiatan: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun setSE2026MenuVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.GONE
+        binding.btnLaporKeluarga.visibility = visibility
+        binding.btnIndustriDigital.visibility = visibility
+        binding.btnLaporPertanian.visibility = visibility
+        if (!visible) se2026IdPcl = null
+    }
+
+    private fun checkSE2026(idPclList: List<Int>) {
+        if (idPclList.isEmpty()) {
+            setSE2026MenuVisible(false)
+            return
+        }
+
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, Context.MODE_PRIVATE)
+        val token = prefs.getString(LoginActivity.PREF_TOKEN, null) ?: return
+        val bearerToken = "Bearer $token"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var hasSE2026Access = false
+            var foundIdPcl: Int? = null
+            var apiCheckSuccessful = false
+
+            for (idPcl in idPclList) {
+                try {
+                    val resp = ApiClient.instance.checkSe2026(bearerToken, idPcl).execute()
+                    if (resp.isSuccessful && resp.body() != null) {
+                        apiCheckSuccessful = true
+                        if (resp.body()!!.is_se2026) {
+                            hasSE2026Access = true
+                            foundIdPcl = idPcl
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            if (apiCheckSuccessful) {
+                // Berhasil terhubung ke API: Simpan status kelayakan terbaru ke SharedPreferences
+                prefs.edit().apply {
+                    putBoolean("has_se2026_access", hasSE2026Access)
+                    if (hasSE2026Access && foundIdPcl != null) {
+                        putInt("se2026_id_pcl", foundIdPcl)
+                    } else {
+                        remove("se2026_id_pcl")
+                    }
+                    apply()
+                }
+            } else {
+                // Gagal menghubungi API (Offline): Ambil data dari cache local SharedPreferences
+                hasSE2026Access = prefs.getBoolean("has_se2026_access", false)
+                val cachedIdPcl = prefs.getInt("se2026_id_pcl", -1)
+                if (cachedIdPcl != -1) {
+                    foundIdPcl = cachedIdPcl
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                se2026IdPcl = foundIdPcl
+                setSE2026MenuVisible(hasSE2026Access)
             }
         }
     }
@@ -562,4 +651,49 @@ class Dasboard : AppCompatActivity() {
     }
 
 
+    private fun preloadSubslsOnce() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val db = com.example.sipantau.localData.AppDatabase.getDatabase(this@Dasboard)
+                val subslsDao = db.subslsDao()
+                val localCount = subslsDao.getAll().size
+                val alreadySynced = prefs.getBoolean("pref_subsls_sync", false)
+
+                if (alreadySynced && localCount > 0) {
+                    Log.d("SUBSLS_SYNC", "⛔ Sub-SLS sudah pernah disinkron dan database tidak kosong ($localCount)")
+                    return@launch
+                }
+
+                val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
+                val userJson = prefs.getString(LoginActivity.PREF_USER, null)
+                if (token.isNullOrEmpty() || userJson.isNullOrEmpty()) return@launch
+
+                val user = Gson().fromJson(userJson, UserData::class.java)
+                val idPclList = user.id_pcl
+
+                if (idPclList.isNullOrEmpty()) {
+                    Log.d("SUBSLS_SYNC", "No id_pcl to sync subsls")
+                    return@launch
+                }
+
+                Log.d("SUBSLS_SYNC", "🚀 Mulai load sub-sls dari API untuk PCL: $idPclList")
+                val subslsRepo = SubslsRepository(this@Dasboard)
+                var hasSuccess = false
+                for (idPcl in idPclList) {
+                    val list = subslsRepo.getSubsls(idPcl = idPcl)
+                    if (list.isNotEmpty()) {
+                        hasSuccess = true
+                    }
+                }
+                if (hasSuccess) {
+                    prefs.edit().putBoolean("pref_subsls_sync", true).apply()
+                    Log.d("SUBSLS_SYNC", "✅ Sync sub-sls SELESAI")
+                }
+            } catch (e: Exception) {
+                Log.e("SUBSLS_SYNC", "🔥 ERROR preload sub-sls", e)
+            }
+        }
+    }
 }

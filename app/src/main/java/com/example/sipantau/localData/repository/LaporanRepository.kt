@@ -54,6 +54,7 @@ class LaporanRepository(private val context: Context) {
                                 nama_kabupaten = it.nama_kabupaten,
                                 nama_kecamatan = it.nama_kecamatan,
                                 nama_desa = it.nama_desa,
+                                id_subsls = it.id_subsls,
                                 created_at = it.created_at
                             )
                         }
@@ -96,6 +97,7 @@ class LaporanRepository(private val context: Context) {
                                 nama_kabupaten = it.nama_kabupaten,
                                 nama_kecamatan = it.nama_kecamatan,
                                 nama_desa = it.nama_desa,
+                                id_subsls = it.id_subsls,
                                 created_at = it.created_at
                             )
                         }
@@ -151,6 +153,7 @@ class LaporanRepository(private val context: Context) {
                 val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.longitude ?: "")
                 val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_kecamatan?.toString() ?: "")
                 val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_desa?.toString() ?: "")
+                val subslsBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_subsls ?: "")
 
                 // ✨ TAMBAHAN: Kirim created_at dari pending
                 val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.created_at ?: "")
@@ -167,6 +170,7 @@ class LaporanRepository(private val context: Context) {
                 val resp = ApiClient.instance.createPelaporan(
                     token!!,
                     idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                    subslsBody,
                     createdAtBody, // ✨ TAMBAHAN parameter
                     part
                 ).execute()

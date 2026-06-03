@@ -14,6 +14,7 @@ data class PendingLaporanEntity(
     val longitude: String?,
     val id_kecamatan: Int?,
     val id_desa: Int?,
+    val id_subsls: String?,
     val local_image_path: String?, // path di filesDir
     val created_at: String,
     val is_sending: Boolean = false

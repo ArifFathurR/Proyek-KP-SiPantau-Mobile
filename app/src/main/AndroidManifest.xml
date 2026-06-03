@@ -58,6 +58,17 @@
         <activity android:name=".DetailKegiatan"/>
         <activity android:name=".DetailLaporanActivity"/>
         <activity android:name=".DetailProgresActivity"/>
+        <activity android:name=".TambahProgresIndustriDigital"/>
+        <activity android:name=".ProgresIndustriDigital"/>
+        <activity android:name=".ProgresKeluarga"/>
+        <activity android:name=".TambahProgresKeluarga"/>
+        <activity android:name=".ProgresPertanian"/>
+        <activity android:name=".TambahProgresPertanian"/>
+        <activity android:name=".PantauAktivitasLaporanPml"/>
+        <activity android:name=".KegiatanSayaPml"/>
+        <activity android:name=".TambahLaporanPml"/>
+
+
     </application>
     <uses-feature
         android:name="android.hardware.camera"

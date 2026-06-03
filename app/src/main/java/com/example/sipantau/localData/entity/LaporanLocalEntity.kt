@@ -17,5 +17,6 @@ data class LaporanLocalEntity(
     val nama_kabupaten: String?,
     val nama_kecamatan: String?,
     val nama_desa: String?,
+    val id_subsls: String?,
     val created_at: String
 )

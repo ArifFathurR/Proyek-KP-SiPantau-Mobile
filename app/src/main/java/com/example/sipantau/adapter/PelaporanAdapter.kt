@@ -48,7 +48,7 @@ class PelaporanAdapter(
 
                 // Replace localhost to emulator host. Keep port if present.
                 if (img.contains("localhost")) {
-                    img = img.replace("localhost", "riau.web.bps.go.id/sipantau/")
+                    img = img.replace("localhost", "riau.web.bps.go.id/sipantau/") //riau.web.bps.go.id/sipantau/
                 }
 
                 // If local file path (pending), Glide can load file path directly
@@ -93,7 +93,7 @@ class PelaporanAdapter(
                     } else {
                         var img = (item.image_url ?: item.imagepath) ?: ""
                         if (img.contains("localhost")) {
-                            img = img.replace("localhost", "riau.web.bps.go.id/sipantau/")
+                            img = img.replace("localhost", "riau.web.bps.go.id/sipantau/")//riau.web.bps.go.id/sipantau/
                         }
                         img
                     }

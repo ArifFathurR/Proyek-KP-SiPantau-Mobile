@@ -15,8 +15,17 @@ import com.example.sipantau.model.KurvaResponse
 import com.example.sipantau.model.PantauProgresCreateResponse
 import com.example.sipantau.model.PantauProgresListResponse
 import com.example.sipantau.model.PclResponse
+import com.example.sipantau.model.PelaporanPmlResponse
 import com.example.sipantau.model.PelaporanResponse
+import com.example.sipantau.model.ProgresIndustriDigitalCreateResponse
+import com.example.sipantau.model.ProgresIndustriDigitalListResponse
+import com.example.sipantau.model.ProgresKeluargaListResponse
+import com.example.sipantau.model.ProgresKeluargaResponse
+import com.example.sipantau.model.ProgresPertanianListResponse
+import com.example.sipantau.model.ProgresPertanianResponse
 import com.example.sipantau.model.ReminderResponse
+import com.example.sipantau.model.SE2026Response
+import com.example.sipantau.model.SubslsResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.TotalKegPMlResponse
 import com.example.sipantau.model.UpdateProfileRequest
@@ -76,9 +85,25 @@ interface ApiService {
         @Part("longitude") longitude: RequestBody,
         @Part("id_kecamatan") idKecamatan: RequestBody,
         @Part("id_desa") idDesa: RequestBody,
+        @Part("id_subsls") idSubsls: RequestBody,
         @Part("created_at") createdAt: RequestBody,
         @Part image: MultipartBody.Part
     ): Call<Void>
+
+//    @Multipart
+//    @POST("pelaporan-pml")
+//    fun createPelaporanPml(
+//        @Header("Authorization") token: String,
+//        @Part("id_pml") idPml: RequestBody,
+//        @Part("id_kegiatan_detail_proses") idKegiatan: RequestBody,
+//        @Part("resume") resume: RequestBody,
+//        @Part("latitude") latitude: RequestBody,
+//        @Part("longitude") longitude: RequestBody,
+//        @Part("id_kecamatan") idKecamatan: RequestBody,
+//        @Part("id_desa") idDesa: RequestBody,
+//        @Part("created_at") createdAt: RequestBody,
+//        @Part image: MultipartBody.Part
+//    )
 
     @DELETE("pelaporan/{id}")
     fun hapusLaporan(
@@ -93,6 +118,7 @@ interface ApiService {
         @Part("id_pcl") idPcl: RequestBody,
         @Part("jumlah_realisasi_absolut") jmlRealisasiAbsolut: RequestBody,
         @Part("catatan_aktivitas") cttAktivitas: RequestBody,
+        @Part("id_subsls") idSubsls: RequestBody,
     ) :Call<PantauProgresCreateResponse>
 
     @GET("progres")
@@ -174,6 +200,109 @@ interface ApiService {
     fun loadAllWilayah(
         @Header("Authorization") token: String
     ): Call<WilayahResponse>
+
+    @FormUrlEncoded
+    @POST("progres-industri-digital")
+    fun createProgresIndustriDigital(
+        @Header("Authorization") token: String,
+        @Field("jumlah_realisasi_absolut") jumlah: Int,
+        @Field("catatan_aktivitas") catatan: String?
+    ): Call<ProgresIndustriDigitalCreateResponse>
+
+    @GET("progres-industri-digital")
+    fun getProgresIndustriDigital(
+        @Header("Authorization") token: String
+    ): Call<ProgresIndustriDigitalListResponse>
+
+    @DELETE("progres-industri-digital/{id}")
+    fun deleteProgresIndustriDigital(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<Void>
+
+    @FormUrlEncoded
+    @POST("progres-keluarga")
+    fun createProgresKeluarga(
+        @Header("Authorization") token: String,
+        @Field("jumlah_realisasi_absolut") jumlah: Int,
+        @Field("catatan_aktivitas") catatan: String?,
+        @Field("id_subsls") idSubsls: String?
+    ): Call<ProgresKeluargaResponse>
+
+    @GET("progres-keluarga")
+    fun getProgresKeluarga(
+        @Header("Authorization") token: String
+    ): Call<ProgresKeluargaListResponse>
+
+    @DELETE("progres-keluarga/{id}")
+    fun deleteProgresKeluarga(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<Void>
+
+    @FormUrlEncoded
+    @POST("progres-pertanian")
+    fun createProgresPertanian(
+        @Header("Authorization") token: String,
+        @Field("jumlah_realisasi_absolut") jumlah: Int,
+        @Field("catatan_aktivitas") catatan: String?,
+        @Field("id_subsls") idSubsls: String?
+    ): Call<ProgresPertanianResponse>
+
+    @GET("progres-pertanian")
+    fun getProgresPertanian(
+        @Header("Authorization") token: String
+    ): Call<ProgresPertanianListResponse>
+
+    @DELETE("progres-pertanian/{id}")
+    fun deleteProgresPertanian(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<Void>
+
+    // GET laporan PML — bisa difilter per id_pml
+    @GET("pelaporan-pml")
+    fun getLaporanPml(
+        @Header("Authorization") token: String,
+        @Query("id_pml") idPml: Int? = null
+    ): Call<PelaporanPmlResponse>
+
+    // POST laporan PML baru (multipart: gambar + data)
+    @Multipart
+    @POST("pelaporan-pml")
+    fun createPelaporanPml(
+        @Header("Authorization") token: String,
+        @Part("id_pml") idPml: RequestBody,
+        @Part("id_kegiatan_detail_proses") idKegiatan: RequestBody,
+        @Part("resume") resume: RequestBody,
+        @Part("latitude") latitude: RequestBody,
+        @Part("longitude") longitude: RequestBody,
+        @Part("id_kecamatan") idKecamatan: RequestBody,
+        @Part("id_desa") idDesa: RequestBody,
+        @Part("created_at") createdAt: RequestBody,
+        @Part image: MultipartBody.Part
+    ): Call<Void>
+
+    @GET("subsls")
+    fun getSubsls(
+        @Header("Authorization") token: String,
+        @Query("id_desa") idDesa: Int? = null,
+        @Query("id_kecamatan") idKecamatan: Int? = null,
+        @Query("id_pcl") idPcl: Int? = null
+    ): Call<SubslsResponse>
+
+    // DELETE laporan PML berdasarkan id
+    @DELETE("pelaporan-pml/{id}")
+    fun hapusLaporanPml(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Call<Void>
+
+    @GET("check-se2026")
+    fun checkSe2026(
+        @Header("Authorization") token: String,
+        @Query("id_pcl") idPcl: Int
+    ): Call<SE2026Response>
 
 }
 

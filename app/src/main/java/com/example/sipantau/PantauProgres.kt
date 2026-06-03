@@ -111,6 +111,7 @@ class PantauProgres : AppCompatActivity() {
                         jumlah_realisasi_absolut = it.jumlah_realisasi_absolut,
                         jumlah_realisasi_kumulatif = it.jumlah_realisasi_kumulatif,
                         catatan_aktivitas = it.catatan_aktivitas,
+                        id_subsls = it.id_subsls,
                         created_at = it.created_at ?: "-"
                     )
                 }

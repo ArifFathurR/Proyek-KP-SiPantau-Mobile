@@ -20,6 +20,8 @@ import com.example.sipantau.databinding.ActivityTambahLaporanBinding
 import com.example.sipantau.localData.entity.DesaLocalEntity
 import com.example.sipantau.localData.entity.KecamatanLocalEntity
 import com.example.sipantau.localData.entity.PendingLaporanEntity
+import com.example.sipantau.localData.entity.SubslsLocalEntity
+import com.example.sipantau.localData.repository.SubslsRepository
 import com.example.sipantau.repository.LaporanRepository
 import com.example.sipantau.repository.WilayahRepository
 import com.example.sipantau.utils.NetworkUtil
@@ -50,7 +52,9 @@ class TambahLaporan : AppCompatActivity() {
     private var idKegiatanDetailProses: Int = 0
     private var selectedKecamatanId: Int? = null
     private var selectedDesaId: Int? = null
+    private var selectedSubslsId: String? = null
     private lateinit var wilayahRepo: WilayahRepository
+    private lateinit var subslsRepo: SubslsRepository
     private lateinit var repo: LaporanRepository
 
     // Flag untuk mencegah double submit
@@ -77,6 +81,7 @@ class TambahLaporan : AppCompatActivity() {
 
         repo = LaporanRepository(this)
         wilayahRepo = WilayahRepository(this)
+        subslsRepo = SubslsRepository(this)
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         idPcl = intent.getIntExtra("id_pcl", 0)
@@ -297,6 +302,43 @@ class TambahLaporan : AppCompatActivity() {
 
             binding.spinnerDesa.setOnItemClickListener { _, _, pos, _ ->
                 selectedDesaId = list[pos].id_desa
+                // Reset Sub-SLS saat desa berubah
+                selectedSubslsId = null
+                binding.spinnerSubsls.setText("", false)
+                // Load Sub-SLS berdasarkan desa & kecamatan yang dipilih
+                loadSubsls()
+            }
+        }
+    }
+
+    // ===================== Load Sub-SLS (online → API+cache, offline → Room) =====================
+
+    private fun loadSubsls() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val list = subslsRepo.getSubsls(
+                    idDesa = selectedDesaId,
+                    idKecamatan = selectedKecamatanId,
+                    idPcl = if (idPcl > 0) idPcl else null
+                )
+                showSubslsDropdown(list)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@TambahLaporan, "Error memuat Sub-SLS: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private suspend fun showSubslsDropdown(list: List<SubslsLocalEntity>) {
+        withContext(Dispatchers.Main) {
+            val names = list.map { it.nama_subsls }
+            val adapter = ArrayAdapter(this@TambahLaporan, android.R.layout.simple_dropdown_item_1line, names)
+            binding.spinnerSubsls.setAdapter(adapter)
+
+            binding.spinnerSubsls.setOnItemClickListener { _, _, pos, _ ->
+                selectedSubslsId = list[pos].id_subsls
             }
         }
     }
@@ -368,6 +410,7 @@ class TambahLaporan : AppCompatActivity() {
             val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), lon)
             val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedKecamatanId?.toString() ?: "")
             val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedDesaId?.toString() ?: "")
+            val subslsBody = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedSubslsId ?: "")
 
             // ✨ TAMBAHAN: Kirim created_at (gunakan timestamp current untuk laporan baru)
             val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), timestamp)
@@ -379,6 +422,7 @@ class TambahLaporan : AppCompatActivity() {
 
             val call = ApiClient.instance.createPelaporan(
                 token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                subslsBody,
                 createdAtBody, // ✨ TAMBAHAN parameter
                 imagePart
             )
@@ -420,6 +464,7 @@ class TambahLaporan : AppCompatActivity() {
             val lonBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.longitude ?: "")
             val kecBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_kecamatan?.toString() ?: "")
             val desaBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_desa?.toString() ?: "")
+            val subslsBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.id_subsls ?: "")
 
             // ✨ TAMBAHAN: Kirim created_at dari pending
             val createdAtBody = RequestBody.create("text/plain".toMediaTypeOrNull(), pending.created_at ?: "")
@@ -431,6 +476,7 @@ class TambahLaporan : AppCompatActivity() {
 
             val call = ApiClient.instance.createPelaporan(
                 token, idPclBody, idKegBody, resumeBody, latBody, lonBody, kecBody, desaBody,
+                subslsBody,
                 createdAtBody, // ✨ TAMBAHAN parameter
                 imagePart
             )
@@ -459,6 +505,7 @@ class TambahLaporan : AppCompatActivity() {
                 longitude = if (lon.isEmpty()) null else lon,
                 id_kecamatan = selectedKecamatanId,
                 id_desa = selectedDesaId,
+                id_subsls = selectedSubslsId,
                 local_image_path = imagePath,
                 created_at = timestamp
             )

@@ -128,6 +128,9 @@ class DashboardPML : AppCompatActivity() {
             binding.btnAchievement.setOnClickListener {
                 startActivity(Intent(this, PantauAktivitasPML::class.java))
             }
+            binding.btnLaporAktivitas.setOnClickListener {
+                startActivity(Intent(this, KegiatanSayaPml::class.java))
+            }
 
             loadTotalKegiatanPml()
 

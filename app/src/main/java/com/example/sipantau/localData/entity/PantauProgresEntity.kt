@@ -12,6 +12,7 @@ data class PantauProgresEntity(
     val jumlah_realisasi_absolut: Int,
     val jumlah_realisasi_kumulatif: Int? = null,
     val catatan_aktivitas: String,
+    val id_subsls: String? = null,
     val created_at: String? = null,
     val is_synced: Boolean = false     // true jika sudah dikirim dan sesuai server
 )

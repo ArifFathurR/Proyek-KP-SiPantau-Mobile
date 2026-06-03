@@ -14,9 +14,15 @@ import com.example.sipantau.localData.entity.*
         PendingLaporanEntity::class,
         LaporanLocalEntity::class,
         KecamatanLocalEntity::class,
-        DesaLocalEntity::class
+        ProgresIndustriDigitalEntity::class,
+        ProgresKeluargaEntity::class,
+        ProgresPertanianEntity::class,
+        DesaLocalEntity::class,
+        LaporanPmlLocalEntity::class,
+        PendingLaporanPmlEntity::class,
+        SubslsLocalEntity::class
     ],
-    version = 6,                 // ⚠️ Naikkan versi DB
+    version = 13,                 // ⚠️ Naikkan versi DB
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,9 +30,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun kegiatanDao(): KegiatanDao
     abstract fun pantauProgresDao(): PantauProgresDao
     abstract fun laporanDao(): LaporanDao
+    abstract fun ProgresIndustriDigitalDao(): ProgresIndustriDigitalDao
+    abstract fun progresKeluargaDao(): ProgresKeluargaDao
+    abstract fun progresPertanianDao(): ProgresPertanianDao
+    abstract fun laporanPmlDao(): LaporanPmlDao
+
 
     // ➕ DAO Baru
     abstract fun wilayahDao(): WilayahDao
+    abstract fun subslsDao(): SubslsDao
 
     companion object {
         @Volatile

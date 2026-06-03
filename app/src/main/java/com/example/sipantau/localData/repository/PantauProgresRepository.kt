@@ -59,8 +59,9 @@ class PantauProgresRepository(private val context: Context) {
                 val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), entity.id_pcl.toString())
                 val jumlahBody = RequestBody.create("text/plain".toMediaTypeOrNull(), entity.jumlah_realisasi_absolut.toString())
                 val catatanBody = RequestBody.create("text/plain".toMediaTypeOrNull(), entity.catatan_aktivitas)
+                val idSubslsBody = RequestBody.create("text/plain".toMediaTypeOrNull(), entity.id_subsls ?: "")
 
-                val resp = ApiClient.instance.createProgres(token!!, idPclBody, jumlahBody, catatanBody).awaitResponse()
+                val resp = ApiClient.instance.createProgres(token!!, idPclBody, jumlahBody, catatanBody, idSubslsBody).awaitResponse()
                 if (resp.isSuccessful && resp.body() != null) {
                     // server returns created data in resp.body()?.data
                     val created = resp.body()!!.data
@@ -72,6 +73,7 @@ class PantauProgresRepository(private val context: Context) {
                         jumlah_realisasi_absolut = created.jumlah_realisasi_absolut ?: entity.jumlah_realisasi_absolut,
                         jumlah_realisasi_kumulatif = created.jumlah_realisasi_kumulatif,
                         catatan_aktivitas = created.catatan_aktivitas,
+                        id_subsls = created.id_subsls ?: entity.id_subsls,
                         created_at = created.created_at,
                         is_synced = true
                     )
@@ -136,12 +138,13 @@ class PantauProgresRepository(private val context: Context) {
                 val idPclBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_pcl.toString())
                 val jumlahBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.jumlah_realisasi_absolut.toString())
                 val catatanBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.catatan_aktivitas)
+                val idSubslsBody = RequestBody.create("text/plain".toMediaTypeOrNull(), p.id_subsls ?: "")
 
-                val resp = ApiClient.instance.createProgres(token!!, idPclBody, jumlahBody, catatanBody).awaitResponse()
+                val resp = ApiClient.instance.createProgres(token!!, idPclBody, jumlahBody, catatanBody, idSubslsBody).awaitResponse()
                 if (resp.isSuccessful && resp.body() != null) {
                     val created = resp.body()!!.data
                     // update local row with server_id and mark synced
-                    val updated = p.copy(server_id = created.id_pantau_progess, is_synced = true, created_at = created.created_at)
+                    val updated = p.copy(server_id = created.id_pantau_progess, is_synced = true, created_at = created.created_at, id_subsls = created.id_subsls ?: p.id_subsls)
                     dao.update(updated)
                     successCount++
                 }
@@ -159,6 +162,7 @@ class PantauProgresRepository(private val context: Context) {
         jumlah_realisasi_absolut = p.jumlah_realisasi_absolut ?: 0,
         jumlah_realisasi_kumulatif = p.jumlah_realisasi_kumulatif,
         catatan_aktivitas = p.catatan_aktivitas,
+        id_subsls = p.id_subsls,
         created_at = p.created_at,
         is_synced = true
     )

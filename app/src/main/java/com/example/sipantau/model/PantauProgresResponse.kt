@@ -21,5 +21,6 @@ data class PantauProgres(
     val jumlah_realisasi_absolut : Int?,
     val jumlah_realisasi_kumulatif : Int?,
     val catatan_aktivitas : String,
-    val created_at : String
+    val created_at : String,
+    val id_subsls : String? = null
 )
