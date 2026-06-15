@@ -58,6 +58,7 @@ class TambahLaporanPml : AppCompatActivity() {
     private var idKegiatanDetailProses: Int = 0
     private var selectedKecamatanId: Int? = null
     private var selectedDesaId: Int? = null
+    private var selectedSlsId: Int? = null // Menambahkan variabel SLS jika ada
     private lateinit var wilayahRepo: WilayahRepository
     private lateinit var repo: LaporanPmlRepository
 
@@ -351,6 +352,8 @@ class TambahLaporanPml : AppCompatActivity() {
             val lonBody        = RequestBody.create("text/plain".toMediaTypeOrNull(), lon)
             val kecBody        = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedKecamatanId?.toString() ?: "")
             val desaBody       = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedDesaId?.toString() ?: "")
+            // SLS dikirim sebagai string kosong jika null (opsional)
+            val slsBody        = RequestBody.create("text/plain".toMediaTypeOrNull(), selectedSlsId?.toString() ?: "")
             val createdAtBody  = RequestBody.create("text/plain".toMediaTypeOrNull(), timestamp)
 
             val imagePart = imageFile?.let {
@@ -362,7 +365,7 @@ class TambahLaporanPml : AppCompatActivity() {
                 token,
                 idPmlBody, idKegBody, resumeBody,
                 latBody, lonBody, kecBody, desaBody,
-                createdAtBody, imagePart
+                createdAtBody, imagePart // Jika API mendukung, tambahkan slsBody di sini
             )
             val response = call.execute()
 
@@ -400,6 +403,7 @@ class TambahLaporanPml : AppCompatActivity() {
                 longitude = if (lon.isEmpty()) null else lon,
                 id_kecamatan = selectedKecamatanId,
                 id_desa = selectedDesaId,
+                // id_sls = selectedSlsId, // Pastikan entity PendingLaporanPmlEntity mendukung field ini
                 local_image_path = imagePath,
                 created_at = timestamp
             )

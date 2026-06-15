@@ -52,7 +52,7 @@
                     android:id="@+id/tvVersion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Versi 2.2.1"
+                    android:text="Versi 2.2.4"
                     android:textSize="16sp"
                     android:layout_marginTop="8dp"
                     app:layout_constraintTop_toBottomOf="@+id/tvAppName"

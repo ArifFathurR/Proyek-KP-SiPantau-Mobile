@@ -15,12 +15,18 @@ import com.example.sipantau.adapter.KegiatanAdapter
 import com.example.sipantau.api.ApiClient
 import com.example.sipantau.auth.LoginActivity
 import com.example.sipantau.databinding.DashboardPmlBinding
+import com.example.sipantau.localData.entity.DesaLocalEntity
+import com.example.sipantau.localData.entity.KecamatanLocalEntity
+import com.example.sipantau.localData.repository.SubslsRepository
 import com.example.sipantau.model.Feedback
 import com.example.sipantau.model.Kegiatan
 import com.example.sipantau.model.KegiatanResponse
 import com.example.sipantau.model.TotalKegPClResponse
 import com.example.sipantau.model.TotalKegPMlResponse
+import com.example.sipantau.model.UserData
+import com.example.sipantau.repository.WilayahRepository
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,6 +38,7 @@ class DashboardPML : AppCompatActivity() {
     private lateinit var kegiatanAdapter: KegiatanAdapter
     private var listAktif = listOf<Kegiatan>()
     private var listTidakAktif = listOf<Kegiatan>()
+    private val PREF_WILAYAH_SYNC = "pref_wilayah_sync"
 
     companion object {
         private const val TAG = "DashboardPML"
@@ -133,6 +140,8 @@ class DashboardPML : AppCompatActivity() {
             }
 
             loadTotalKegiatanPml()
+            preloadWilayahOnce()
+            preloadSubslsOnce()
 
             // ====== SETUP BOTTOM NAVIGATION ======
             setupBottomNavigation()
@@ -325,5 +334,118 @@ class DashboardPML : AppCompatActivity() {
                     binding.jmlKeg.text = "0"
                 }
             })
+    }
+    private fun preloadWilayahOnce() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+        val alreadySynced = prefs.getBoolean(PREF_WILAYAH_SYNC, false)
+
+        if (alreadySynced) {
+            Log.d("WILAYAH_SYNC", "⛔ Wilayah sudah pernah disinkron")
+            return
+        }
+
+        val token = "Bearer ${prefs.getString(LoginActivity.PREF_TOKEN, "")}"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("WILAYAH_SYNC", "🚀 Mulai load wilayah dari API")
+
+                val resp = ApiClient.instance.loadAllWilayah(token).execute()
+
+                if (!resp.isSuccessful || resp.body() == null) {
+                    Log.e("WILAYAH_SYNC", "❌ API gagal: ${resp.code()}")
+                    return@launch
+                }
+
+                val data = resp.body()!!
+
+                // 🔍 DEBUG API
+                Log.d("WILAYAH_SYNC", "API kecamatan: ${data.kecamatan.data.size}")
+                Log.d("WILAYAH_SYNC", "API desa: ${data.kecamatan.data.size}")
+
+                val kecEntities = data.kecamatan.data.map  {
+                    KecamatanLocalEntity(
+                        id_kecamatan = it.id_kecamatan,
+                        id_kabupaten = it.id_kabupaten,
+                        nama_kecamatan = it.nama_kecamatan
+                    )
+                }
+
+                val desaEntities = data.desa.data.map {
+                    DesaLocalEntity(
+                        id_desa = it.id_desa,
+                        id_kecamatan = it.id_kecamatan,
+                        nama_desa = it.nama_desa
+                    )
+                }
+
+                val repo = WilayahRepository(this@DashboardPML)
+
+                // 💾 INSERT KE ROOM
+                repo.saveKecamatan(kecEntities)
+                repo.saveDesa(desaEntities)
+
+                // 🔎 VALIDASI ROOM
+                val kecCount = repo.getKecamatan().size
+                val desaCount = repo.getDesaByKecamatan(
+                    kecEntities.firstOrNull()?.id_kecamatan ?: -1
+                ).size
+
+                Log.d("WILAYAH_SYNC", "ROOM kecamatan tersimpan: $kecCount")
+                Log.d("WILAYAH_SYNC", "ROOM contoh desa: $desaCount")
+
+                prefs.edit().putBoolean(PREF_WILAYAH_SYNC, true).apply()
+
+                Log.d("WILAYAH_SYNC", "✅ Sync wilayah SELESAI")
+
+            } catch (e: Exception) {
+                Log.e("WILAYAH_SYNC", "🔥 ERROR preload wilayah", e)
+            }
+        }
+    }
+    private fun preloadSubslsOnce() {
+        val prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val db = com.example.sipantau.localData.AppDatabase.getDatabase(this@DashboardPML)
+                val subslsDao = db.subslsDao()
+                val localCount = subslsDao.getAll().size
+                val alreadySynced = prefs.getBoolean("pref_subsls_sync", false)
+
+                if (alreadySynced && localCount > 0) {
+                    Log.d("SUBSLS_SYNC", "⛔ Sub-SLS sudah pernah disinkron dan database tidak kosong ($localCount)")
+                    return@launch
+                }
+
+                val token = prefs.getString(LoginActivity.PREF_TOKEN, null)
+                val userJson = prefs.getString(LoginActivity.PREF_USER, null)
+                if (token.isNullOrEmpty() || userJson.isNullOrEmpty()) return@launch
+
+                val user = Gson().fromJson(userJson, UserData::class.java)
+                val idPclList = user.id_pcl
+
+                if (idPclList.isNullOrEmpty()) {
+                    Log.d("SUBSLS_SYNC", "No id_pcl to sync subsls")
+                    return@launch
+                }
+
+                Log.d("SUBSLS_SYNC", "🚀 Mulai load sub-sls dari API untuk PCL: $idPclList")
+                val subslsRepo = SubslsRepository(this@DashboardPML)
+                var hasSuccess = false
+                for (idPcl in idPclList) {
+                    val list = subslsRepo.getSubsls(idPcl = idPcl)
+                    if (list.isNotEmpty()) {
+                        hasSuccess = true
+                    }
+                }
+                if (hasSuccess) {
+                    prefs.edit().putBoolean("pref_subsls_sync", true).apply()
+                    Log.d("SUBSLS_SYNC", "✅ Sync sub-sls SELESAI")
+                }
+            } catch (e: Exception) {
+                Log.e("SUBSLS_SYNC", "🔥 ERROR preload sub-sls", e)
+            }
+        }
     }
 }

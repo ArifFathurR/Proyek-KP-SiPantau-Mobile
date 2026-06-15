@@ -87,11 +87,6 @@ class TambahProgres : AppCompatActivity() {
             return
         }
 
-        if (selectedSubslsId.isNullOrEmpty()) {
-            Toast.makeText(this, "Sub-SLS wajib dipilih", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         // ================= LOADING ON =================
         setLoading(true)
 
